@@ -209,45 +209,47 @@ export const LeaderboardDrillDown = () => {
 				<section className="matches-section">
 					<h2 className="section-label">Match History</h2>
 					<div className="matches-list">
-						{leaderboardData.map((match, i) => (
-							<div
-								className="match-card"
-								key={match.id}
-								style={{ animationDelay: `${i * 0.06}s` }}
-							>
-								<div className="match-date">
-									{formatDate(match.timestamp)}
+						{leaderboardData
+							.sort((a, b) => b.timestamp - a.timestamp)
+							.map((match, i) => (
+								<div
+									className="match-card"
+									key={match.id}
+									style={{ animationDelay: `${i * 0.06}s` }}
+								>
+									<div className="match-date">
+										{formatDate(match.timestamp)}
+									</div>
+									<div className="match-players">
+										<div
+											className={`match-player ${match.player1GamesWon > match.player2GamesWon ? "winner" : ""}`}
+										>
+											<span className="player-name">
+												{match.player1Name}
+											</span>
+											<span className="player-score">
+												{match.player1GamesWon}
+											</span>
+										</div>
+										<div className="match-vs">vs</div>
+										<div
+											className={`match-player right ${match.player2GamesWon > match.player1GamesWon ? "winner" : ""}`}
+										>
+											<span className="player-score">
+												{match.player2GamesWon}
+											</span>
+											<span className="player-name">
+												{match.player2Name}
+											</span>
+										</div>
+									</div>
+									{match.note && (
+										<div className="match-note">
+											{match.note}
+										</div>
+									)}
 								</div>
-								<div className="match-players">
-									<div
-										className={`match-player ${match.player1GamesWon > match.player2GamesWon ? "winner" : ""}`}
-									>
-										<span className="player-name">
-											{match.player1Name}
-										</span>
-										<span className="player-score">
-											{match.player1GamesWon}
-										</span>
-									</div>
-									<div className="match-vs">vs</div>
-									<div
-										className={`match-player right ${match.player2GamesWon > match.player1GamesWon ? "winner" : ""}`}
-									>
-										<span className="player-score">
-											{match.player2GamesWon}
-										</span>
-										<span className="player-name">
-											{match.player2Name}
-										</span>
-									</div>
-								</div>
-								{match.note && (
-									<div className="match-note">
-										{match.note}
-									</div>
-								)}
-							</div>
-						))}
+							))}
 					</div>
 				</section>
 			)}

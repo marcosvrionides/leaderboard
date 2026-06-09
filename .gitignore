@@ -14,6 +14,7 @@ backend/*.war
 backend/*.class
 backend/.mvn/wrapper/maven-wrapper.jar
 backend/src/main/resources/application-local.properties
+backend/src/main/resources/application.properties
 
 # ── Misc ─────────────────────────────────────────
 .DS_Store
@@ -38,3 +39,6 @@ yarn-error.log*
 *.iws
 *.ipr
 .vscode/
+
+# ── Migration  ───────────────────────────────────
+leaderboards-9c5f0-default-rtdb-export.json

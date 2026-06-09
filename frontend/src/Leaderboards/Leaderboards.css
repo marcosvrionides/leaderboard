@@ -1,0 +1,22 @@
+.leaderboards-container {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.leaderboards-section-label {
+	font-size: 11px;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: #555;
+	margin: 0 0 20px;
+	font-weight: 500;
+}
+
+.leaderboards-empty {
+	color: #444;
+	font-size: 14px;
+	text-align: center;
+	padding: 60px 0;
+	letter-spacing: 0.04em;
+}

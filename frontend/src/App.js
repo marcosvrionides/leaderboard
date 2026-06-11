@@ -27,8 +27,9 @@ const App = () => {
 				element={
 					<div className="app-container">
 						<div className="app-header">
-							<text id="header-name">Leaderboards</text>
-
+							{!searchOpen && (
+								<text id="header-name">Leaderboards</text>
+							)}
 							{/* Search input — slides in when searchOpen is true */}
 							{searchOpen && (
 								<input
@@ -42,23 +43,25 @@ const App = () => {
 									}
 								/>
 							)}
-
-							<button
-								className="create-leaderboard-button"
-								onClick={(e) => {
-									e.stopPropagation();
-									navigate(`/create-leaderboard`);
-								}}
-							>
-								Create
-							</button>
-
-							{/* Toggle button — label changes based on state */}
-							<div
-								className="search-leaderboard-button"
-								onClick={handleSearchToggle}
-							>
-								{searchOpen ? "✕ Close" : "Search"}
+							<div className="create-search-container">
+								{!searchOpen && (
+									<button
+										className="create-leaderboard-button"
+										onClick={(e) => {
+											e.stopPropagation();
+											navigate(`/create-leaderboard`);
+										}}
+									>
+										Create
+									</button>
+								)}
+								{/* Toggle button — label changes based on state */}
+								<div
+									className="search-leaderboard-button"
+									onClick={handleSearchToggle}
+								>
+									{searchOpen ? "✕ Close" : "Search"}
+								</div>
 							</div>
 						</div>
 

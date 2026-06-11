@@ -29,6 +29,12 @@
 	flex-shrink: 0;
 }
 
+.create-search-container {
+	display: flex;
+	flex-direction: row;
+	gap: 1em;
+}
+
 .create-leaderboard-button {
 	background: #e8c96d;
 	color: #0d0d0d;

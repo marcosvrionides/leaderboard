@@ -19,7 +19,9 @@ export const LeaderboardDrillDown = () => {
 
 	// Extracted into its own function so we can call it after adding a game too
 	const fetchMatches = () => {
-		fetch(`http://localhost:8080/api/matches/leaderboard/${name}`)
+		fetch(
+			`${process.env.REACT_APP_API_URL}/api/matches/leaderboard/${name}`,
+		)
 			.then((res) => res.json())
 			.then((data) => setLeaderboardData(data));
 	};

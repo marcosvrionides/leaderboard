@@ -16,11 +16,14 @@ async function importAll() {
 	// ── STEP 1: Delete all existing matches first (must delete matches before
 	//           leaderboards due to the foreign key relationship between them)
 	console.log("Deleting existing matches...");
-	await fetch("http://localhost:8080/api/matches/all", { method: "DELETE" });
+	await fetch(
+		`${process.env.REACT_APP_API_URL}/api/leaderboards/matches/all`,
+		{ method: "DELETE" },
+	);
 
 	// ── STEP 2: Delete all existing leaderboards
 	console.log("Deleting existing leaderboards...");
-	await fetch("http://localhost:8080/api/leaderboards/all", {
+	await fetch(`${process.env.REACT_APP_API_URL}/api/leaderboards/all`, {
 		method: "DELETE",
 	});
 
@@ -39,7 +42,7 @@ async function importAll() {
 
 		// ── STEP 4: Create the leaderboard via the API
 		const leaderboardRes = await fetch(
-			"http://localhost:8080/api/leaderboards",
+			`${process.env.REACT_APP_API_URL}/api/leaderboards`,
 			{
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -61,7 +64,7 @@ async function importAll() {
 			if (key === "password") continue;
 
 			// ── STEP 6: Create the match via the API
-			await fetch("http://localhost:8080/api/matches", {
+			await fetch(`${process.env.REACT_APP_API_URL}/api/matches`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({

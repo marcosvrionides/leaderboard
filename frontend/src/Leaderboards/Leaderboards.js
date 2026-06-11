@@ -8,7 +8,7 @@ const Leaderboards = ({ searchTerm = "" }) => {
 	const [leaderboards, setLeaderboards] = useState([]);
 
 	useEffect(() => {
-		fetch("http://localhost:8080/api/leaderboards")
+		fetch(`${process.env.REACT_APP_API_URL}/api/leaderboards`)
 			.then((res) => res.json())
 			.then((data) => setLeaderboards(data));
 	}, []);

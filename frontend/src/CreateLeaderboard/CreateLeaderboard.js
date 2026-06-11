@@ -8,7 +8,7 @@ const CreateLeaderboard = () => {
 	const [password, setPassword] = useState("");
 
 	const handleCreate = () => {
-		fetch("http://localhost:8080/api/leaderboards", {
+		fetch(`${process.env.REACT_APP_API_URL}/api/leaderboards`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ name, password }),

@@ -6,11 +6,24 @@ import { LeaderboardCard } from "../LeaderboardCard/LeaderboardCard";
 // searchTerm is passed in from App.js
 const Leaderboards = ({ searchTerm = "" }) => {
 	const [leaderboards, setLeaderboards] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState(null);
 
 	useEffect(() => {
+		setLoading(true);
+		setError(null);
+
 		fetch(`${process.env.REACT_APP_API_URL}/api/leaderboards`)
-			.then((res) => res.json())
-			.then((data) => setLeaderboards(data));
+			.then((res) => {
+				if (!res.ok) throw new Error(`Request failed (${res.status})`);
+				return res.json();
+			})
+			.then((data) => setLeaderboards(data))
+			.catch((err) => {
+				console.error(err);
+				setError("Couldn't load leaderboards. Please try again.");
+			})
+			.finally(() => setLoading(false));
 	}, []);
 
 	// Filter client-side — case-insensitive match on leaderboard name
@@ -26,16 +39,22 @@ const Leaderboards = ({ searchTerm = "" }) => {
 					? `Results for "${searchTerm}"`
 					: "All Leaderboards"}
 			</p>
-			{filtered.length === 0 && (
+			{error && <div className="leaderboards-empty">{error}</div>}
+			{!error && loading && (
+				<div className="leaderboards-empty">Loading…</div>
+			)}
+			{!error && !loading && filtered.length === 0 && (
 				<div className="leaderboards-empty">
 					{searchTerm
 						? "No leaderboards match your search"
 						: "No leaderboards yet"}
 				</div>
 			)}
-			{filtered.map((data, i) => (
-				<LeaderboardCard key={data.name} data={data} index={i} />
-			))}
+			{!error &&
+				!loading &&
+				filtered.map((data, i) => (
+					<LeaderboardCard key={data.name} data={data} index={i} />
+				))}
 		</div>
 	);
 };

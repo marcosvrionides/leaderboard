@@ -6,16 +6,44 @@ const CreateLeaderboard = () => {
 	const navigate = useNavigate();
 	const [name, setName] = useState("");
 	const [password, setPassword] = useState("");
+	const [error, setError] = useState(null);
+	const [submitting, setSubmitting] = useState(false);
 
 	const handleCreate = () => {
+		if (!name.trim() || !password.trim()) {
+			setError("Please enter a name and password.");
+			return;
+		}
+		if (password.length < 4) {
+			setError("Password must be at least 4 characters.");
+			return;
+		}
+
+		setError(null);
+		setSubmitting(true);
+
 		fetch(`${process.env.REACT_APP_API_URL}/api/leaderboards`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ name, password }),
+			body: JSON.stringify({ name: name.trim(), password }),
 		})
-			.then((res) => res.json())
+			.then(async (res) => {
+				if (res.status === 409) {
+					throw new Error(
+						`A leaderboard named "${name.trim()}" already exists.`,
+					);
+				}
+				if (!res.ok) {
+					throw new Error("Couldn't create the leaderboard. Please try again.");
+				}
+				return res.json();
+			})
 			.then((data) => navigate("/leaderboard/" + data.name))
-			.catch((err) => console.error(err));
+			.catch((err) => {
+				console.error(err);
+				setError(err.message);
+			})
+			.finally(() => setSubmitting(false));
 	};
 
 	return (
@@ -52,8 +80,14 @@ const CreateLeaderboard = () => {
 					/>
 				</div>
 
-				<button className="submit-button" onClick={handleCreate}>
-					Create Leaderboard
+				{error && <div className="create-error">{error}</div>}
+
+				<button
+					className="submit-button"
+					onClick={handleCreate}
+					disabled={submitting}
+				>
+					{submitting ? "Creating…" : "Create Leaderboard"}
 				</button>
 			</div>
 		</div>

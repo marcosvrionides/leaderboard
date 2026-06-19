@@ -87,6 +87,15 @@
 	color: #333;
 }
 
+.create-error {
+	background: #2a1414;
+	border: 1px solid #4d1f1f;
+	color: #e8a3a3;
+	font-size: 13px;
+	padding: 12px 14px;
+	border-radius: 8px;
+}
+
 .submit-button {
 	margin-top: 8px;
 	background: #e8c96d;

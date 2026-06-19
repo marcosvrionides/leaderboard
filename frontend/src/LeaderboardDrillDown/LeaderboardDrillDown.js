@@ -5,6 +5,7 @@ import "./LeaderboardDrillDown.css";
 export const LeaderboardDrillDown = () => {
 	const { name } = useParams();
 	const [leaderboardData, setLeaderboardData] = useState(null);
+	const [loadError, setLoadError] = useState(null);
 	// Controls whether the Add Game modal is open
 	const [modalOpen, setModalOpen] = useState(false);
 	// Form field state
@@ -14,20 +15,40 @@ export const LeaderboardDrillDown = () => {
 		player1GamesWon: "",
 		player2GamesWon: "",
 		note: "",
+		password: "",
 	});
 	const [submitting, setSubmitting] = useState(false);
+	const [submitError, setSubmitError] = useState(null);
+
+	const emptyForm = {
+		player1Name: "",
+		player2Name: "",
+		player1GamesWon: "",
+		player2GamesWon: "",
+		note: "",
+		password: "",
+	};
 
 	// Extracted into its own function so we can call it after adding a game too
 	const fetchMatches = () => {
+		setLoadError(null);
 		fetch(
 			`${process.env.REACT_APP_API_URL}/api/matches/leaderboard/${name}`,
 		)
-			.then((res) => res.json())
-			.then((data) => setLeaderboardData(data));
+			.then((res) => {
+				if (!res.ok) throw new Error(`Request failed (${res.status})`);
+				return res.json();
+			})
+			.then((data) => setLeaderboardData(data))
+			.catch((err) => {
+				console.error(err);
+				setLoadError("Couldn't load this leaderboard. Please try again.");
+			});
 	};
 
 	useEffect(() => {
 		fetchMatches();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [name]);
 
 	const handleFormChange = (e) => {
@@ -35,20 +56,30 @@ export const LeaderboardDrillDown = () => {
 	};
 
 	const handleSubmit = () => {
-		// Basic validation — player names and scores required
+		// Basic validation — player names, scores, and the leaderboard
+		// password are all required
 		if (
 			!form.player1Name.trim() ||
 			!form.player2Name.trim() ||
 			form.player1GamesWon === "" ||
-			form.player2GamesWon === ""
-		)
+			form.player2GamesWon === "" ||
+			!form.password
+		) {
+			setSubmitError(
+				"Player names, scores, and the leaderboard password are required.",
+			);
 			return;
+		}
 
+		setSubmitError(null);
 		setSubmitting(true);
 
-		fetch("http://localhost:8080/api/matches", {
+		fetch(`${process.env.REACT_APP_API_URL}/api/matches`, {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				"X-Leaderboard-Password": form.password,
+			},
 			body: JSON.stringify({
 				player1Name: form.player1Name.trim(),
 				player2Name: form.player2Name.trim(),
@@ -61,32 +92,35 @@ export const LeaderboardDrillDown = () => {
 				leaderboard: { name },
 			}),
 		})
-			.then((res) => res.json())
+			.then(async (res) => {
+				if (res.status === 403) {
+					throw new Error("Incorrect leaderboard password.");
+				}
+				if (res.status === 404) {
+					throw new Error("This leaderboard no longer exists.");
+				}
+				if (!res.ok) {
+					throw new Error("Couldn't save the game. Please try again.");
+				}
+				return res.json();
+			})
 			.then(() => {
 				// Close modal, reset form, refresh match list
 				setModalOpen(false);
-				setForm({
-					player1Name: "",
-					player2Name: "",
-					player1GamesWon: "",
-					player2GamesWon: "",
-					note: "",
-				});
+				setForm(emptyForm);
 				fetchMatches();
 			})
-			.catch((err) => console.error(err))
+			.catch((err) => {
+				console.error(err);
+				setSubmitError(err.message);
+			})
 			.finally(() => setSubmitting(false));
 	};
 
 	const handleCloseModal = () => {
 		setModalOpen(false);
-		setForm({
-			player1Name: "",
-			player2Name: "",
-			player1GamesWon: "",
-			player2GamesWon: "",
-			note: "",
-		});
+		setSubmitError(null);
+		setForm(emptyForm);
 	};
 
 	// Compute standings
@@ -115,6 +149,26 @@ export const LeaderboardDrillDown = () => {
 		.map(([player, stats]) => ({ player, ...stats }))
 		.sort((a, b) => b.matchWins - a.matchWins);
 
+	// Sort a copy for display — mutating leaderboardData directly here would
+	// mutate React state in place, outside of setState, which can produce
+	// stale renders and key/order mismatches.
+	const sortedMatches = leaderboardData
+		? [...leaderboardData].sort((a, b) => b.timestamp - a.timestamp)
+		: [];
+
+	// Unique player names seen so far on this leaderboard, used to power
+	// autocomplete suggestions in the Add Game form.
+	const knownPlayerNames = leaderboardData
+		? Array.from(
+				new Set(
+					leaderboardData.flatMap((m) => [
+						m.player1Name,
+						m.player2Name,
+					]),
+				),
+			).sort((a, b) => a.localeCompare(b))
+		: [];
+
 	const formatDate = (ts) =>
 		new Date(ts).toLocaleDateString("en-GB", {
 			day: "numeric",
@@ -135,12 +189,22 @@ export const LeaderboardDrillDown = () => {
 				<p className="drill-subtitle">
 					{leaderboardData
 						? `${leaderboardData.length} matches played`
-						: "Loading..."}
+						: loadError
+							? " "
+							: "Loading..."}
 				</p>
 			</div>
 
+			{loadError && (
+				<div className="empty-state">
+					<div className="empty-icon">⚠️</div>
+					<h2 className="empty-title">Something went wrong</h2>
+					<p className="empty-subtitle">{loadError}</p>
+				</div>
+			)}
+
 			{/* Empty state — shown when data is loaded but no matches exist yet */}
-			{leaderboardData && leaderboardData.length === 0 && (
+			{!loadError && leaderboardData && leaderboardData.length === 0 && (
 				<div className="empty-state">
 					<div className="empty-icon">🏆</div>
 					<h2 className="empty-title">No games yet</h2>
@@ -211,51 +275,49 @@ export const LeaderboardDrillDown = () => {
 				<section className="matches-section">
 					<h2 className="section-label">Match History</h2>
 					<div className="matches-list">
-						{leaderboardData
-							.sort((a, b) => b.timestamp - a.timestamp)
-							.map((match, i) => (
-								<div
-									className="match-card"
-									key={match.id}
-									style={{ animationDelay: `${i * 0.06}s` }}
-								>
-									<div className="match-date">
-										{formatDate(match.timestamp)}
-									</div>
-									<div className="match-players">
-										<div
-											className={`match-player ${match.player1GamesWon > match.player2GamesWon ? "winner" : ""}`}
-										>
-											<span className="player-name">
-												{match.player1Name}
-											</span>
-											<span className="player-score">
-												{match.player1GamesWon}
-											</span>
-										</div>
-										<div className="match-vs">vs</div>
-										<div
-											className={`match-player right ${match.player2GamesWon > match.player1GamesWon ? "winner" : ""}`}
-										>
-											<span className="player-score">
-												{match.player2GamesWon}
-											</span>
-											<span className="player-name">
-												{match.player2Name}
-											</span>
-										</div>
-									</div>
-									{match.note && (
-										<div className="match-note">
-											{match.note}
-										</div>
-									)}
+						{sortedMatches.map((match, i) => (
+							<div
+								className="match-card"
+								key={match.id}
+								style={{ animationDelay: `${i * 0.06}s` }}
+							>
+								<div className="match-date">
+									{formatDate(match.timestamp)}
 								</div>
-							))}
+								<div className="match-players">
+									<div
+										className={`match-player ${match.player1GamesWon > match.player2GamesWon ? "winner" : ""}`}
+									>
+										<span className="player-name">
+											{match.player1Name}
+										</span>
+										<span className="player-score">
+											{match.player1GamesWon}
+										</span>
+									</div>
+									<div className="match-vs">vs</div>
+									<div
+										className={`match-player right ${match.player2GamesWon > match.player1GamesWon ? "winner" : ""}`}
+									>
+										<span className="player-score">
+											{match.player2GamesWon}
+										</span>
+										<span className="player-name">
+											{match.player2Name}
+										</span>
+									</div>
+								</div>
+								{match.note && (
+									<div className="match-note">
+										{match.note}
+									</div>
+								)}
+							</div>
+						))}
 					</div>
 				</section>
 			)}
-			{!leaderboardData && (
+			{!leaderboardData && !loadError && (
 				<div className="loading-state">
 					<div className="spinner" />
 					<p>Loading matches…</p>
@@ -297,6 +359,7 @@ export const LeaderboardDrillDown = () => {
 											name="player1Name"
 											placeholder="Name"
 											autoComplete="off"
+											list="known-player-names"
 											value={form.player1Name}
 											onChange={handleFormChange}
 										/>
@@ -324,6 +387,7 @@ export const LeaderboardDrillDown = () => {
 											name="player2Name"
 											placeholder="Name"
 											autoComplete="off"
+											list="known-player-names"
 											value={form.player2Name}
 											onChange={handleFormChange}
 										/>
@@ -342,6 +406,15 @@ export const LeaderboardDrillDown = () => {
 								</div>
 							</div>
 
+							{/* Shared suggestion list — powers autocomplete on both
+							    player name fields above */}
+							<datalist id="known-player-names">
+								{knownPlayerNames.map((playerName) => (
+									<option key={playerName} value={playerName} />
+								))}
+							</datalist>
+
+
 							{/* Optional note */}
 							<div className="form-field">
 								<label>Note (optional)</label>
@@ -354,6 +427,24 @@ export const LeaderboardDrillDown = () => {
 									onChange={handleFormChange}
 								/>
 							</div>
+
+							{/* Leaderboard password — required so only people who know
+							    it can add games */}
+							<div className="form-field">
+								<label>Leaderboard Password</label>
+								<input
+									type="password"
+									name="password"
+									placeholder="Enter the leaderboard password"
+									autoComplete="current-password"
+									value={form.password}
+									onChange={handleFormChange}
+								/>
+							</div>
+
+							{submitError && (
+								<div className="modal-error">{submitError}</div>
+							)}
 						</div>
 
 						<button

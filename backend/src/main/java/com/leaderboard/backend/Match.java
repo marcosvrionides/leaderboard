@@ -1,6 +1,9 @@
 package com.leaderboard.backend;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "matches")
@@ -10,11 +13,21 @@ public class Match {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Player 1 name is required")
     private String player1Name;
+
+    @NotBlank(message = "Player 2 name is required")
     private String player2Name;
+
+    @Min(value = 0, message = "Games won cannot be negative")
     private int player1GamesWon;
+
+    @Min(value = 0, message = "Games won cannot be negative")
     private int player2GamesWon;
+
+    @Size(max = 500, message = "Note must be 500 characters or fewer")
     private String note;
+
     private long timestamp;
 
     @ManyToOne

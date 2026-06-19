@@ -517,6 +517,16 @@
 	color: #333;
 }
 
+.modal-error {
+	background: #2a1414;
+	border: 1px solid #4d1f1f;
+	color: #e8a3a3;
+	font-size: 13px;
+	padding: 12px 14px;
+	border-radius: 8px;
+	margin-top: 16px;
+}
+
 .modal-submit {
 	background: #e8c96d;
 	color: #0d0d0d;

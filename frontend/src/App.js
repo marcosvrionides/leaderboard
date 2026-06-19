@@ -28,7 +28,7 @@ const App = () => {
 					<div className="app-container">
 						<div className="app-header">
 							{!searchOpen && (
-								<text id="header-name">Leaderboards</text>
+								<span id="header-name">Leaderboards</span>
 							)}
 							{/* Search input — slides in when searchOpen is true */}
 							{searchOpen && (

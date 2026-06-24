@@ -60,6 +60,45 @@
 	text-overflow: ellipsis;
 }
 
+.leaderboard-card-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+	margin-left: 12px;
+}
+
+.favourite-button {
+	background: transparent;
+	color: #444;
+	border: 1px solid #2a2a2a;
+	width: 36px;
+	height: 36px;
+	font-size: 16px;
+	line-height: 1;
+	border-radius: 6px;
+	cursor: pointer;
+	transition:
+		color 0.2s,
+		border-color 0.2s,
+		transform 0.15s;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.favourite-button:hover {
+	color: #e8c96d;
+	border-color: #e8c96d55;
+}
+.favourite-button.is-favourite {
+	color: #e8c96d;
+	border-color: #e8c96d55;
+}
+.favourite-button:active {
+	transform: scale(0.85);
+}
+
 .open-leaderboard-button {
 	background: transparent;
 	color: #e8c96d;

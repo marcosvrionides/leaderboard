@@ -66,12 +66,7 @@ const App = () => {
 						</div>
 
 						<div className="homescreen-body">
-							<div id="left-hand-pane"></div>
-							<div id="middle-pane">
-								{/* Pass the search term down so Leaderboards can filter */}
-								<Leaderboards searchTerm={searchTerm} />
-							</div>
-							<div id="right-hand-pane"></div>
+							<Leaderboards searchTerm={searchTerm} />
 						</div>
 					</div>
 				}

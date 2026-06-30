@@ -6,9 +6,7 @@ export const LeaderboardDrillDown = () => {
 	const { name } = useParams();
 	const [leaderboardData, setLeaderboardData] = useState(null);
 	const [loadError, setLoadError] = useState(null);
-	// Controls whether the Add Game modal is open
 	const [modalOpen, setModalOpen] = useState(false);
-	// Form field state
 	const [form, setForm] = useState({
 		player1Name: "",
 		player2Name: "",
@@ -29,7 +27,6 @@ export const LeaderboardDrillDown = () => {
 		password: "",
 	};
 
-	// Extracted into its own function so we can call it after adding a game too
 	const fetchMatches = () => {
 		setLoadError(null);
 		fetch(
@@ -42,7 +39,9 @@ export const LeaderboardDrillDown = () => {
 			.then((data) => setLeaderboardData(data))
 			.catch((err) => {
 				console.error(err);
-				setLoadError("Couldn't load this leaderboard. Please try again.");
+				setLoadError(
+					"Couldn't load this leaderboard. Please try again.",
+				);
 			});
 	};
 
@@ -56,8 +55,6 @@ export const LeaderboardDrillDown = () => {
 	};
 
 	const handleSubmit = () => {
-		// Basic validation — player names, scores, and the leaderboard
-		// password are all required
 		if (
 			!form.player1Name.trim() ||
 			!form.player2Name.trim() ||
@@ -86,26 +83,22 @@ export const LeaderboardDrillDown = () => {
 				player1GamesWon: parseInt(form.player1GamesWon, 10),
 				player2GamesWon: parseInt(form.player2GamesWon, 10),
 				note: form.note.trim() || null,
-				// Epoch ms timestamp, same as your existing data
 				timestamp: Date.now(),
-				// Link to the leaderboard by name (matches your @ManyToOne / @JoinColumn setup)
 				leaderboard: { name },
 			}),
 		})
 			.then(async (res) => {
-				if (res.status === 403) {
+				if (res.status === 403)
 					throw new Error("Incorrect leaderboard password.");
-				}
-				if (res.status === 404) {
+				if (res.status === 404)
 					throw new Error("This leaderboard no longer exists.");
-				}
-				if (!res.ok) {
-					throw new Error("Couldn't save the game. Please try again.");
-				}
+				if (!res.ok)
+					throw new Error(
+						"Couldn't save the game. Please try again.",
+					);
 				return res.json();
 			})
 			.then(() => {
-				// Close modal, reset form, refresh match list
 				setModalOpen(false);
 				setForm(emptyForm);
 				fetchMatches();
@@ -123,7 +116,6 @@ export const LeaderboardDrillDown = () => {
 		setForm(emptyForm);
 	};
 
-	// Compute standings
 	const playerStats = {};
 	if (leaderboardData) {
 		leaderboardData.forEach((match) => {
@@ -133,10 +125,8 @@ export const LeaderboardDrillDown = () => {
 				playerStats[p1] = { matchWins: 0, gameWins: 0 };
 			if (!playerStats[p2])
 				playerStats[p2] = { matchWins: 0, gameWins: 0 };
-
 			playerStats[p1].gameWins += match.player1GamesWon;
 			playerStats[p2].gameWins += match.player2GamesWon;
-
 			if (match.player1GamesWon > match.player2GamesWon) {
 				playerStats[p1].matchWins += 1;
 			} else if (match.player2GamesWon > match.player1GamesWon) {
@@ -149,15 +139,10 @@ export const LeaderboardDrillDown = () => {
 		.map(([player, stats]) => ({ player, ...stats }))
 		.sort((a, b) => b.matchWins - a.matchWins);
 
-	// Sort a copy for display — mutating leaderboardData directly here would
-	// mutate React state in place, outside of setState, which can produce
-	// stale renders and key/order mismatches.
 	const sortedMatches = leaderboardData
 		? [...leaderboardData].sort((a, b) => b.timestamp - a.timestamp)
 		: [];
 
-	// Unique player names seen so far on this leaderboard, used to power
-	// autocomplete suggestions in the Add Game form.
 	const knownPlayerNames = leaderboardData
 		? Array.from(
 				new Set(
@@ -179,11 +164,13 @@ export const LeaderboardDrillDown = () => {
 	return (
 		<div className="drill-container">
 			<div className="drill-header">
-				<div
-					className="drill-back"
-					onClick={() => window.history.back()}
-				>
-					← Back
+				<div className="drill-header-top">
+					<div
+						className="drill-back"
+						onClick={() => window.history.back()}
+					>
+						← Back
+					</div>
 				</div>
 				<h1 className="drill-title">{name}</h1>
 				<p className="drill-subtitle">
@@ -203,7 +190,6 @@ export const LeaderboardDrillDown = () => {
 				</div>
 			)}
 
-			{/* Empty state — shown when data is loaded but no matches exist yet */}
 			{!loadError && leaderboardData && leaderboardData.length === 0 && (
 				<div className="empty-state">
 					<div className="empty-icon">🏆</div>
@@ -215,7 +201,6 @@ export const LeaderboardDrillDown = () => {
 				</div>
 			)}
 
-			{/* Standings — only shown once there's at least one match */}
 			{rankings.length > 0 && (
 				<section className="standings-section">
 					<h2 className="section-label">Standings</h2>
@@ -270,7 +255,6 @@ export const LeaderboardDrillDown = () => {
 				</section>
 			)}
 
-			{/* Match history — only shown once there's at least one match */}
 			{leaderboardData && leaderboardData.length > 0 && (
 				<section className="matches-section">
 					<h2 className="section-label">Match History</h2>
@@ -317,6 +301,7 @@ export const LeaderboardDrillDown = () => {
 					</div>
 				</section>
 			)}
+
 			{!leaderboardData && !loadError && (
 				<div className="loading-state">
 					<div className="spinner" />
@@ -324,7 +309,6 @@ export const LeaderboardDrillDown = () => {
 				</div>
 			)}
 
-			{/* Floating add game button */}
 			<button
 				className="fab"
 				onClick={() => setModalOpen(true)}
@@ -333,10 +317,8 @@ export const LeaderboardDrillDown = () => {
 				+
 			</button>
 
-			{/* Modal overlay */}
 			{modalOpen && (
 				<div className="modal-backdrop" onClick={handleCloseModal}>
-					{/* Stop clicks inside the modal from closing it */}
 					<div className="modal" onClick={(e) => e.stopPropagation()}>
 						<div className="modal-header">
 							<h2 className="modal-title">Add Game</h2>
@@ -349,7 +331,6 @@ export const LeaderboardDrillDown = () => {
 						</div>
 
 						<div className="modal-body">
-							{/* Player row — names and scores side by side */}
 							<div className="modal-players-row">
 								<div className="modal-player-col">
 									<div className="form-field">
@@ -376,9 +357,7 @@ export const LeaderboardDrillDown = () => {
 										/>
 									</div>
 								</div>
-
 								<div className="modal-vs">VS</div>
-
 								<div className="modal-player-col">
 									<div className="form-field">
 										<label>Player 2</label>
@@ -406,16 +385,15 @@ export const LeaderboardDrillDown = () => {
 								</div>
 							</div>
 
-							{/* Shared suggestion list — powers autocomplete on both
-							    player name fields above */}
 							<datalist id="known-player-names">
 								{knownPlayerNames.map((playerName) => (
-									<option key={playerName} value={playerName} />
+									<option
+										key={playerName}
+										value={playerName}
+									/>
 								))}
 							</datalist>
 
-
-							{/* Optional note */}
 							<div className="form-field">
 								<label>Note (optional)</label>
 								<input
@@ -428,8 +406,6 @@ export const LeaderboardDrillDown = () => {
 								/>
 							</div>
 
-							{/* Leaderboard password — required so only people who know
-							    it can add games */}
 							<div className="form-field">
 								<label>Leaderboard Password</label>
 								<input

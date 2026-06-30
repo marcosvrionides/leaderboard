@@ -28,14 +28,14 @@ const CreateLeaderboard = () => {
 			body: JSON.stringify({ name: name.trim(), password }),
 		})
 			.then(async (res) => {
-				if (res.status === 409) {
+				if (res.status === 409)
 					throw new Error(
 						`A leaderboard named "${name.trim()}" already exists.`,
 					);
-				}
-				if (!res.ok) {
-					throw new Error("Couldn't create the leaderboard. Please try again.");
-				}
+				if (!res.ok)
+					throw new Error(
+						"Couldn't create the leaderboard. Please try again.",
+					);
 				return res.json();
 			})
 			.then((data) => navigate("/leaderboard/" + data.name))
@@ -49,9 +49,14 @@ const CreateLeaderboard = () => {
 	return (
 		<div className="create-container">
 			<div className="create-header">
-				<button className="back-button" onClick={() => navigate("/")}>
-					← Back
-				</button>
+				<div className="create-header-top">
+					<button
+						className="back-button"
+						onClick={() => navigate("/")}
+					>
+						← Back
+					</button>
+				</div>
 				<h1 className="create-title">New Leaderboard</h1>
 			</div>
 

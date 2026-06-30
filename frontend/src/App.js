@@ -4,17 +4,16 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import Leaderboards from "./Leaderboards/Leaderboards";
 import { LeaderboardDrillDown } from "./LeaderboardDrillDown/LeaderboardDrillDown";
 import CreateLeaderboard from "./CreateLeaderboard/CreateLeaderboard";
+import useTheme from "./useTheme";
 
 const App = () => {
 	const navigate = useNavigate();
-	// Controls whether the search input is visible
 	const [searchOpen, setSearchOpen] = useState(false);
-	// The current search term, passed down to the leaderboards list
 	const [searchTerm, setSearchTerm] = useState("");
+	const { theme, toggleTheme } = useTheme();
 
 	const handleSearchToggle = () => {
 		setSearchOpen((prev) => {
-			// When closing, also clear the search term so the full list reappears
 			if (prev) setSearchTerm("");
 			return !prev;
 		});
@@ -30,7 +29,6 @@ const App = () => {
 							{!searchOpen && (
 								<span id="header-name">Leaderboards</span>
 							)}
-							{/* Search input — slides in when searchOpen is true */}
 							{searchOpen && (
 								<input
 									className="search-input"
@@ -46,22 +44,32 @@ const App = () => {
 							<div className="create-search-container">
 								{!searchOpen && (
 									<button
-										className="create-leaderboard-button"
+										className="icon-button create-leaderboard-button"
 										onClick={(e) => {
 											e.stopPropagation();
 											navigate(`/create-leaderboard`);
 										}}
+										title="Create leaderboard"
 									>
-										Create
+										+
 									</button>
 								)}
-								{/* Toggle button — label changes based on state */}
-								<div
-									className="search-leaderboard-button"
+								<button
+									className="icon-button search-leaderboard-button"
 									onClick={handleSearchToggle}
+									title={
+										searchOpen ? "Close search" : "Search"
+									}
 								>
-									{searchOpen ? "✕ Close" : "Search"}
-								</div>
+									{searchOpen ? "✕" : "🔍"}
+								</button>
+								<button
+									className="icon-button theme-toggle"
+									onClick={toggleTheme}
+									title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+								>
+									{theme === "dark" ? "☀️" : "🌙"}
+								</button>
 							</div>
 						</div>
 

@@ -6,47 +6,35 @@
 	align-items: start;
 }
 
-/* When no favourites: shrink the favourites column, expand all leaderboards */
 .leaderboards-layout.no-favourites {
 	grid-template-columns: 280px 1fr;
 }
 
-.leaderboards-main {
-	min-width: 0;
-}
-
-.leaderboards-sidebar {
-	min-width: 0;
-}
+.leaderboards-main  { min-width: 0; }
+.leaderboards-sidebar { min-width: 0; }
 
 .leaderboards-sidebar-inner {
 	position: sticky;
-	top: 96px; /* clears the sticky header */
+	top: 96px;
 	max-height: calc(100vh - 120px);
 	overflow-y: auto;
 	padding-right: 4px;
-	/* subtle scrollbar */
 	scrollbar-width: thin;
-	scrollbar-color: #2a2a2a transparent;
+	scrollbar-color: var(--scrollbar) transparent;
 }
-.leaderboards-sidebar-inner::-webkit-scrollbar {
-	width: 4px;
-}
+.leaderboards-sidebar-inner::-webkit-scrollbar { width: 4px; }
 .leaderboards-sidebar-inner::-webkit-scrollbar-thumb {
-	background: #2a2a2a;
+	background: var(--scrollbar);
 	border-radius: 2px;
 }
 
-/* Search mode: full width single column */
-.leaderboards-search-results {
-	width: 100%;
-}
+.leaderboards-search-results { width: 100%; }
 
 .leaderboards-section-label {
 	font-size: 11px;
 	letter-spacing: 0.18em;
 	text-transform: uppercase;
-	color: #555;
+	color: var(--text-muted-2);
 	margin: 0 0 14px;
 	font-weight: 500;
 }
@@ -57,7 +45,6 @@
 	gap: 10px;
 }
 
-/* Empty favourites state */
 .leaderboards-no-favourites {
 	display: flex;
 	flex-direction: column;
@@ -65,27 +52,27 @@
 	justify-content: center;
 	gap: 8px;
 	padding: 80px 40px;
-	border: 1px dashed #222;
+	border: 1px dashed var(--border-subtle);
 	border-radius: 12px;
 	text-align: center;
 }
 
 .leaderboards-no-favourites-icon {
 	font-size: 36px;
-	color: #333;
+	color: var(--border-strong);
 	line-height: 1;
 	margin-bottom: 4px;
 }
 
 .leaderboards-no-favourites p {
 	margin: 0;
-	color: #555;
+	color: var(--text-muted-2);
 	font-size: 14px;
 	font-weight: 500;
 }
 
 .leaderboards-no-favourites-hint {
-	color: #3a3a3a !important;
+	color: var(--border-hint) !important;
 	font-size: 12px !important;
 	font-weight: 400 !important;
 	max-width: 220px;
@@ -93,7 +80,7 @@
 }
 
 .leaderboards-empty {
-	color: #444;
+	color: var(--text-muted-3);
 	font-size: 14px;
 	text-align: center;
 	padding: 40px 0;
@@ -107,7 +94,6 @@
 		grid-template-columns: 1fr;
 		gap: 32px;
 	}
-
 	.leaderboards-sidebar-inner {
 		position: static;
 		max-height: none;

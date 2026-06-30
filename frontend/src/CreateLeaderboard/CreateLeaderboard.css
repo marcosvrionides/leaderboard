@@ -1,49 +1,56 @@
 .create-container {
 	min-height: 100vh;
-	background: #0d0d0d;
-	color: #f0ede6;
+	background: var(--bg-primary);
+	color: var(--text-primary);
 	font-family: "DM Sans", sans-serif;
 	padding: 0 0 80px;
 }
 
 .create-header {
-	border-bottom: 1px solid #1e1e1e;
+	border-bottom: 1px solid var(--border-subtle);
 	padding: 20px 24px 18px;
 	position: sticky;
 	top: 0;
-	background: #0d0d0d;
+	background: var(--bg-primary);
 	z-index: 10;
+	display: flex;
+	flex-direction: column;
+}
+
+.create-header-top {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 10px;
 }
 
 .back-button {
 	background: transparent;
 	border: none;
-	color: #888;
+	color: var(--text-muted-1);
 	font-family: "DM Sans", sans-serif;
 	font-size: 13px;
 	letter-spacing: 0.04em;
 	cursor: pointer;
 	padding: 0;
-	margin-bottom: 10px;
 	display: block;
 	transition: color 0.2s;
 }
 .back-button:hover {
-	color: #e8c96d;
+	color: var(--accent-ink);
 }
 
 .create-title {
 	font-family: "Bebas Neue", sans-serif;
 	font-size: clamp(36px, 8vw, 72px);
 	letter-spacing: 0.06em;
-	color: #f0ede6;
+	color: var(--text-primary);
 	margin: 0;
 	line-height: 1;
 }
 
 .create-form {
 	max-width: 480px;
-	/* On mobile take full width with padding; on desktop centre it */
 	margin: 40px auto 0;
 	padding: 0 24px;
 	display: flex;
@@ -61,17 +68,16 @@
 	font-size: 11px;
 	letter-spacing: 0.18em;
 	text-transform: uppercase;
-	color: #555;
+	color: var(--text-muted-2);
 	font-weight: 500;
 }
 
 .form-field input {
-	background: #141414;
-	border: 1px solid #1e1e1e;
+	background: var(--bg-card);
+	border: 1px solid var(--border-subtle);
 	border-radius: 8px;
-	color: #f0ede6;
+	color: var(--text-primary);
 	font-family: "DM Sans", sans-serif;
-	/* 16px prevents iOS auto-zoom on focus */
 	font-size: 16px;
 	padding: 14px 16px;
 	outline: none;
@@ -81,16 +87,16 @@
 	-webkit-appearance: none;
 }
 .form-field input:focus {
-	border-color: #e8c96d55;
+	border-color: var(--accent-a34);
 }
 .form-field input::placeholder {
-	color: #333;
+	color: var(--border-strong);
 }
 
 .create-error {
-	background: #2a1414;
-	border: 1px solid #4d1f1f;
-	color: #e8a3a3;
+	background: var(--error-bg);
+	border: 1px solid var(--error-border);
+	color: var(--error-text);
 	font-size: 13px;
 	padding: 12px 14px;
 	border-radius: 8px;
@@ -98,10 +104,9 @@
 
 .submit-button {
 	margin-top: 8px;
-	background: #e8c96d;
-	color: #0d0d0d;
+	background: var(--accent);
+	color: var(--accent-text);
 	border: none;
-	/* Tall enough for comfortable thumb tap */
 	padding: 16px 24px;
 	font-family: "DM Sans", sans-serif;
 	font-size: 13px;
@@ -116,7 +121,7 @@
 	width: 100%;
 }
 .submit-button:hover {
-	background: #f0d87a;
+	background: var(--accent-hover);
 }
 .submit-button:active {
 	transform: scale(0.98);

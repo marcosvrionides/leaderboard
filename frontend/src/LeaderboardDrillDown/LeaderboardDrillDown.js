@@ -2,30 +2,21 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import "./LeaderboardDrillDown.css";
 
+const emptyParticipant = () => ({ name: "", gamesWon: "" });
+const emptyForm = () => ({
+	participants: [emptyParticipant(), emptyParticipant()],
+	note: "",
+	password: "",
+});
+
 export const LeaderboardDrillDown = () => {
 	const { name } = useParams();
 	const [leaderboardData, setLeaderboardData] = useState(null);
 	const [loadError, setLoadError] = useState(null);
 	const [modalOpen, setModalOpen] = useState(false);
-	const [form, setForm] = useState({
-		player1Name: "",
-		player2Name: "",
-		player1GamesWon: "",
-		player2GamesWon: "",
-		note: "",
-		password: "",
-	});
+	const [form, setForm] = useState(emptyForm());
 	const [submitting, setSubmitting] = useState(false);
 	const [submitError, setSubmitError] = useState(null);
-
-	const emptyForm = {
-		player1Name: "",
-		player2Name: "",
-		player1GamesWon: "",
-		player2GamesWon: "",
-		note: "",
-		password: "",
-	};
 
 	const fetchMatches = () => {
 		setLoadError(null);
@@ -50,20 +41,49 @@ export const LeaderboardDrillDown = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [name]);
 
-	const handleFormChange = (e) => {
+	const handleParticipantChange = (index, field, value) => {
+		setForm((prev) => {
+			const participants = [...prev.participants];
+			participants[index] = { ...participants[index], [field]: value };
+			return { ...prev, participants };
+		});
+	};
+
+	const handleAddParticipant = () => {
+		setForm((prev) => ({
+			...prev,
+			participants: [...prev.participants, emptyParticipant()],
+		}));
+	};
+
+	const handleRemoveParticipant = (index) => {
+		setForm((prev) => ({
+			...prev,
+			participants: prev.participants.filter((_, i) => i !== index),
+		}));
+	};
+
+	const handleFieldChange = (e) => {
 		setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 	};
 
 	const handleSubmit = () => {
+		const trimmedParticipants = form.participants.map((p) => ({
+			name: p.name.trim(),
+			gamesWon: p.gamesWon,
+		}));
+
+		const hasEmptyField = trimmedParticipants.some(
+			(p) => !p.name || p.gamesWon === "",
+		);
+
 		if (
-			!form.player1Name.trim() ||
-			!form.player2Name.trim() ||
-			form.player1GamesWon === "" ||
-			form.player2GamesWon === "" ||
+			trimmedParticipants.length < 2 ||
+			hasEmptyField ||
 			!form.password
 		) {
 			setSubmitError(
-				"Player names, scores, and the leaderboard password are required.",
+				"All player names, scores, and the leaderboard password are required.",
 			);
 			return;
 		}
@@ -78,10 +98,10 @@ export const LeaderboardDrillDown = () => {
 				"X-Leaderboard-Password": form.password,
 			},
 			body: JSON.stringify({
-				player1Name: form.player1Name.trim(),
-				player2Name: form.player2Name.trim(),
-				player1GamesWon: parseInt(form.player1GamesWon, 10),
-				player2GamesWon: parseInt(form.player2GamesWon, 10),
+				participants: trimmedParticipants.map((p) => ({
+					playerName: p.name,
+					gamesWon: parseInt(p.gamesWon, 10),
+				})),
 				note: form.note.trim() || null,
 				timestamp: Date.now(),
 				leaderboard: { name },
@@ -100,7 +120,7 @@ export const LeaderboardDrillDown = () => {
 			})
 			.then(() => {
 				setModalOpen(false);
-				setForm(emptyForm);
+				setForm(emptyForm());
 				fetchMatches();
 			})
 			.catch((err) => {
@@ -113,25 +133,30 @@ export const LeaderboardDrillDown = () => {
 	const handleCloseModal = () => {
 		setModalOpen(false);
 		setSubmitError(null);
-		setForm(emptyForm);
+		setForm(emptyForm());
+	};
+
+	// A match win is only credited when there's a single, outright top score.
+	// A tie for the top score means nobody gets credited for that match.
+	const getMatchWinnerNames = (participants) => {
+		const maxScore = Math.max(...participants.map((p) => p.gamesWon));
+		const topScorers = participants.filter((p) => p.gamesWon === maxScore);
+		return topScorers.length === 1 ? [topScorers[0].playerName] : [];
 	};
 
 	const playerStats = {};
 	if (leaderboardData) {
 		leaderboardData.forEach((match) => {
-			const p1 = match.player1Name;
-			const p2 = match.player2Name;
-			if (!playerStats[p1])
-				playerStats[p1] = { matchWins: 0, gameWins: 0 };
-			if (!playerStats[p2])
-				playerStats[p2] = { matchWins: 0, gameWins: 0 };
-			playerStats[p1].gameWins += match.player1GamesWon;
-			playerStats[p2].gameWins += match.player2GamesWon;
-			if (match.player1GamesWon > match.player2GamesWon) {
-				playerStats[p1].matchWins += 1;
-			} else if (match.player2GamesWon > match.player1GamesWon) {
-				playerStats[p2].matchWins += 1;
-			}
+			const winnerNames = getMatchWinnerNames(match.participants);
+			match.participants.forEach((p) => {
+				if (!playerStats[p.playerName]) {
+					playerStats[p.playerName] = { matchWins: 0, gameWins: 0 };
+				}
+				playerStats[p.playerName].gameWins += p.gamesWon;
+				if (winnerNames.includes(p.playerName)) {
+					playerStats[p.playerName].matchWins += 1;
+				}
+			});
 		});
 	}
 
@@ -146,10 +171,9 @@ export const LeaderboardDrillDown = () => {
 	const knownPlayerNames = leaderboardData
 		? Array.from(
 				new Set(
-					leaderboardData.flatMap((m) => [
-						m.player1Name,
-						m.player2Name,
-					]),
+					leaderboardData.flatMap((m) =>
+						m.participants.map((p) => p.playerName),
+					),
 				),
 			).sort((a, b) => a.localeCompare(b))
 		: [];
@@ -259,45 +283,46 @@ export const LeaderboardDrillDown = () => {
 				<section className="matches-section">
 					<h2 className="section-label">Match History</h2>
 					<div className="matches-list">
-						{sortedMatches.map((match, i) => (
-							<div
-								className="match-card"
-								key={match.id}
-								style={{ animationDelay: `${i * 0.06}s` }}
-							>
-								<div className="match-date">
-									{formatDate(match.timestamp)}
+						{sortedMatches.map((match, i) => {
+							const winnerNames = getMatchWinnerNames(
+								match.participants,
+							);
+							const sortedParticipants = [
+								...match.participants,
+							].sort((a, b) => b.gamesWon - a.gamesWon);
+
+							return (
+								<div
+									className="match-card"
+									key={match.id}
+									style={{ animationDelay: `${i * 0.06}s` }}
+								>
+									<div className="match-date">
+										{formatDate(match.timestamp)}
+									</div>
+									<div className="match-participants">
+										{sortedParticipants.map((p, pi) => (
+											<div
+												className={`match-participant-row ${winnerNames.includes(p.playerName) ? "winner" : ""}`}
+												key={pi}
+											>
+												<span className="participant-name">
+													{p.playerName}
+												</span>
+												<span className="participant-score">
+													{p.gamesWon}
+												</span>
+											</div>
+										))}
+									</div>
+									{match.note && (
+										<div className="match-note">
+											{match.note}
+										</div>
+									)}
 								</div>
-								<div className="match-players">
-									<div
-										className={`match-player ${match.player1GamesWon > match.player2GamesWon ? "winner" : ""}`}
-									>
-										<span className="player-name">
-											{match.player1Name}
-										</span>
-										<span className="player-score">
-											{match.player1GamesWon}
-										</span>
-									</div>
-									<div className="match-vs">vs</div>
-									<div
-										className={`match-player right ${match.player2GamesWon > match.player1GamesWon ? "winner" : ""}`}
-									>
-										<span className="player-score">
-											{match.player2GamesWon}
-										</span>
-										<span className="player-name">
-											{match.player2Name}
-										</span>
-									</div>
-								</div>
-								{match.note && (
-									<div className="match-note">
-										{match.note}
-									</div>
-								)}
-							</div>
-						))}
+							);
+						})}
 					</div>
 				</section>
 			)}
@@ -331,59 +356,73 @@ export const LeaderboardDrillDown = () => {
 						</div>
 
 						<div className="modal-body">
-							<div className="modal-players-row">
-								<div className="modal-player-col">
-									<div className="form-field">
-										<label>Player 1</label>
-										<input
-											type="text"
-											name="player1Name"
-											placeholder="Name"
-											autoComplete="off"
-											list="known-player-names"
-											value={form.player1Name}
-											onChange={handleFormChange}
-										/>
+							<div className="modal-participants-list">
+								{form.participants.map((p, index) => (
+									<div
+										className="modal-participant-row"
+										key={index}
+									>
+										<div className="form-field participant-name-field">
+											<label>
+												Player {index + 1}
+											</label>
+											<input
+												type="text"
+												placeholder="Name"
+												autoComplete="off"
+												list="known-player-names"
+												value={p.name}
+												onChange={(e) =>
+													handleParticipantChange(
+														index,
+														"name",
+														e.target.value,
+													)
+												}
+											/>
+										</div>
+										<div className="form-field participant-score-field">
+											<label>Games Won</label>
+											<input
+												type="number"
+												placeholder="0"
+												min="0"
+												value={p.gamesWon}
+												onChange={(e) =>
+													handleParticipantChange(
+														index,
+														"gamesWon",
+														e.target.value,
+													)
+												}
+											/>
+										</div>
+										{form.participants.length > 2 && (
+											<button
+												type="button"
+												className="remove-participant-button"
+												onClick={() =>
+													handleRemoveParticipant(
+														index,
+													)
+												}
+												title="Remove player"
+												aria-label="Remove player"
+											>
+												✕
+											</button>
+										)}
 									</div>
-									<div className="form-field">
-										<label>Games Won</label>
-										<input
-											type="number"
-											name="player1GamesWon"
-											placeholder="0"
-											min="0"
-											value={form.player1GamesWon}
-											onChange={handleFormChange}
-										/>
-									</div>
-								</div>
-								<div className="modal-vs">VS</div>
-								<div className="modal-player-col">
-									<div className="form-field">
-										<label>Player 2</label>
-										<input
-											type="text"
-											name="player2Name"
-											placeholder="Name"
-											autoComplete="off"
-											list="known-player-names"
-											value={form.player2Name}
-											onChange={handleFormChange}
-										/>
-									</div>
-									<div className="form-field">
-										<label>Games Won</label>
-										<input
-											type="number"
-											name="player2GamesWon"
-											placeholder="0"
-											min="0"
-											value={form.player2GamesWon}
-											onChange={handleFormChange}
-										/>
-									</div>
-								</div>
+								))}
 							</div>
+
+							<button
+								type="button"
+								className="add-participant-button"
+								onClick={handleAddParticipant}
+							>
+								+ Add Player
+							</button>
 
 							<datalist id="known-player-names">
 								{knownPlayerNames.map((playerName) => (
@@ -402,7 +441,7 @@ export const LeaderboardDrillDown = () => {
 									placeholder="e.g. Final of the season"
 									autoComplete="off"
 									value={form.note}
-									onChange={handleFormChange}
+									onChange={handleFieldChange}
 								/>
 							</div>
 
@@ -414,7 +453,7 @@ export const LeaderboardDrillDown = () => {
 									placeholder="Enter the leaderboard password"
 									autoComplete="current-password"
 									value={form.password}
-									onChange={handleFormChange}
+									onChange={handleFieldChange}
 								/>
 							</div>
 

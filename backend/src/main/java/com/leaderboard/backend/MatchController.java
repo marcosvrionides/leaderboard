@@ -54,6 +54,7 @@ public class MatchController {
         // Attach the managed entity (rather than the transient one deserialized
         // from the request body) so the relationship persists correctly.
         match.setLeaderboard(leaderboard);
+        match.getParticipants().forEach(p -> p.setMatch(match));
         return matchRepository.save(match);
     }
 

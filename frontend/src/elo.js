@@ -33,10 +33,13 @@ const byPlayOrder = (a, b) =>
  *  - ratings:      Map of playerName -> current rating
  *  - changesByMatchId: Map of match id -> Map of playerName -> rating change
  *    from that match (useful for showing "+16" next to a result)
+ *  - history:      Map of playerName -> [{ matchId, timestamp, rating, change }]
+ *    in play order, where rating is the rating *after* that match
  */
 export const computeEloRatings = (matches) => {
 	const ratings = new Map();
 	const changesByMatchId = new Map();
+	const history = new Map();
 	const ratingOf = (name) => ratings.get(name) ?? STARTING_RATING;
 
 	[...(matches || [])].sort(byPlayOrder).forEach((match) => {
@@ -73,10 +76,18 @@ export const computeEloRatings = (matches) => {
 		});
 
 		changes.forEach((change, name) => {
-			ratings.set(name, ratingOf(name) + change);
+			const rating = ratingOf(name) + change;
+			ratings.set(name, rating);
+			if (!history.has(name)) history.set(name, []);
+			history.get(name).push({
+				matchId: match.id,
+				timestamp: match.timestamp,
+				rating,
+				change,
+			});
 		});
 		if (match.id != null) changesByMatchId.set(match.id, changes);
 	});
 
-	return { ratings, changesByMatchId };
+	return { ratings, changesByMatchId, history };
 };

@@ -1,13 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useCallback, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { STARTING_RATING } from "../elo";
-import { apiFetch, seg } from "../api";
-import {
-	computeStandings,
-	newestFirst,
-	normaliseMatches,
-	plural,
-} from "../stats";
+import { computeStandings, newestFirst, plural } from "../stats";
+import { playerPath } from "../paths";
+import useBoardMatches from "../useBoardMatches";
 import EloInfoModal from "./EloInfoModal";
 import AddMatchModal from "./AddMatchModal";
 import DeleteMatchModal from "./DeleteMatchModal";
@@ -18,8 +14,12 @@ import "./LeaderboardDrillDown.css";
 
 export const LeaderboardDrillDown = () => {
 	const { name } = useParams();
-	const [leaderboardData, setLeaderboardData] = useState(null);
-	const [loadError, setLoadError] = useState(null);
+	const navigate = useNavigate();
+	const {
+		matches,
+		error: loadError,
+		reload: fetchMatches,
+	} = useBoardMatches(name);
 	const [addOpen, setAddOpen] = useState(false);
 	const [matchToDelete, setMatchToDelete] = useState(null);
 	const [eloInfoOpen, setEloInfoOpen] = useState(false);
@@ -30,27 +30,6 @@ export const LeaderboardDrillDown = () => {
 	const [manageDialog, setManageDialog] = useState(null);
 	const closeManage = useCallback(() => setManageDialog(null), []);
 
-	const fetchMatches = useCallback(() => {
-		setLoadError(null);
-		apiFetch(`/api/matches/leaderboard/${seg(name)}`)
-			.then((data) => setLeaderboardData(data))
-			.catch((err) => {
-				console.error(err);
-				setLoadError(
-					"Couldn't load this leaderboard. Please try again.",
-				);
-			});
-	}, [name]);
-
-	useEffect(() => {
-		fetchMatches();
-	}, [fetchMatches]);
-
-	// One consistent spelling per player, however their name was typed.
-	const matches = useMemo(
-		() => normaliseMatches(leaderboardData),
-		[leaderboardData],
-	);
 	const { rankings, elo } = computeStandings(matches);
 	const maxMatchWins = Math.max(0, ...rankings.map((r) => r.matchWins));
 	const maxGameWins = Math.max(0, ...rankings.map((r) => r.gameWins));
@@ -63,12 +42,9 @@ export const LeaderboardDrillDown = () => {
 		<div className="drill-container">
 			<div className="drill-header">
 				<div className="drill-header-top">
-					<div
-						className="drill-back"
-						onClick={() => window.history.back()}
-					>
-						← Back
-					</div>
+					<Link className="drill-back" to="/">
+						← All leaderboards
+					</Link>
 					<button
 						type="button"
 						className="drill-manage"
@@ -79,8 +55,8 @@ export const LeaderboardDrillDown = () => {
 				</div>
 				<h1 className="drill-title">{name}</h1>
 				<p className="drill-subtitle">
-					{leaderboardData
-						? `${plural(leaderboardData.length, "match", "matches")} played`
+					{matches
+						? `${plural(matches.length, "match", "matches")} played`
 						: loadError
 							? " "
 							: "Loading..."}
@@ -95,7 +71,7 @@ export const LeaderboardDrillDown = () => {
 				</div>
 			)}
 
-			{!loadError && leaderboardData && leaderboardData.length === 0 && (
+			{!loadError && matches && matches.length === 0 && (
 				<div className="empty-state">
 					<div className="empty-icon">🏆</div>
 					<h2 className="empty-title">No games yet</h2>
@@ -120,9 +96,11 @@ export const LeaderboardDrillDown = () => {
 					</div>
 					<div className="standings-list">
 						{rankings.map((r, i) => (
-							<div
+							<Link
 								className="standing-row"
 								key={r.player}
+								to={playerPath(name, r.player)}
+								title={`See ${r.player}'s profile`}
 								style={{ animationDelay: `${i * 0.07}s` }}
 							>
 								<span className={`rank-badge rank-${i + 1}`}>
@@ -176,7 +154,7 @@ export const LeaderboardDrillDown = () => {
 										</div>
 									</div>
 								</div>
-							</div>
+							</Link>
 						))}
 					</div>
 				</section>
@@ -193,13 +171,16 @@ export const LeaderboardDrillDown = () => {
 								index={i}
 								eloChanges={elo.changesByMatchId.get(match.id)}
 								onDelete={setMatchToDelete}
+								onPlayerClick={(p) =>
+									navigate(playerPath(name, p))
+								}
 							/>
 						))}
 					</div>
 				</section>
 			)}
 
-			{!leaderboardData && !loadError && (
+			{!matches && !loadError && (
 				<div className="loading-state">
 					<div className="spinner" />
 					<p>Loading matches…</p>

@@ -127,3 +127,15 @@ test("formatEloChange uses a sign and rounds", () => {
 	expect(formatEloChange(0.3)).toBe("±0");
 	expect(formatEloChange(-0.4)).toBe("±0");
 });
+
+test("history records each player's rating after every match", () => {
+	const { ratings, history } = computeEloRatings([
+		match(2, 200, { Alice: 0, Bob: 3 }),
+		match(1, 100, { Alice: 3, Bob: 1 }),
+	]);
+	const alice = history.get("Alice");
+	expect(alice.map((h) => h.matchId)).toEqual([1, 2]);
+	expect(alice[0].rating).toBeCloseTo(STARTING_RATING + K_FACTOR / 2);
+	expect(alice[1].rating).toBeCloseTo(ratings.get("Alice"));
+	expect(alice[1].change).toBeLessThan(0);
+});

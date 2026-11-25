@@ -34,6 +34,11 @@
   --error-border:  #4d1f1f;
   --error-text:    #e8a3a3;
   --gain-text:     #8fd19e;
+  /* Win/draw/loss marks: green and red differ in lightness so they stay
+     distinct with colour blindness (validated); draw is a neutral midpoint. */
+  --result-win:    #55a570;
+  --result-draw:   #57554f;
+  --result-loss:   #b8453d;
   --shadow:        rgba(0,0,0,0.5);
   --modal-bg:      rgba(0,0,0,0.7);
   --scrollbar:     #2a2a2a;
@@ -72,6 +77,9 @@
   --error-border:  #f5c5c5;
   --error-text:    #b02020;
   --gain-text:     #1f7a3a;
+  --result-win:    #2f9e57;
+  --result-draw:   #d6d1c7;
+  --result-loss:   #a1281f;
   --shadow:        rgba(0,0,0,0.12);
   --modal-bg:      rgba(0,0,0,0.4);
   --scrollbar:     #cfc8b8;

@@ -1,5 +1,8 @@
 import {
+	computePlayerProfile,
 	computeStandings,
+	headToHead,
+	playerResult,
 	getMatchWinnerNames,
 	normaliseMatches,
 	playerKey,
@@ -75,4 +78,63 @@ test("plural", () => {
 	expect(plural(1, "match", "matches")).toBe("1 match");
 	expect(plural(0, "match", "matches")).toBe("0 matches");
 	expect(plural(3, "game")).toBe("3 games");
+});
+
+describe("player profile", () => {
+	const matches = [
+		match(1, 100, { Alice: 3, Bob: 1 }),
+		match(2, 200, { Alice: 3, Bob: 0 }),
+		match(3, 300, { Alice: 2, Bob: 2 }),
+		match(4, 400, { Bob: 3, Alice: 1, Cat: 0 }),
+		match(5, 500, { Alice: 3, Cat: 1 }),
+		match(6, 600, { Alice: 3, Cat: 2 }),
+	];
+	const { elo } = computeStandings(matches);
+	const profile = computePlayerProfile(matches, "Alice", elo);
+
+	test("counts results", () => {
+		expect(profile).toMatchObject({
+			played: 6,
+			wins: 4,
+			draws: 1,
+			losses: 1,
+		});
+		expect(profile.winRate).toBeCloseTo(4 / 6);
+	});
+
+	test("form is the last five results, oldest first", () => {
+		expect(profile.form).toEqual(["W", "D", "L", "W", "W"]);
+	});
+
+	test("streaks", () => {
+		expect(profile.streak).toEqual({ result: "W", count: 2 });
+		expect(profile.longestWinStreak).toBe(2);
+	});
+
+	test("rating history and peak", () => {
+		expect(profile.history).toHaveLength(6);
+		expect(profile.peakRating).toBeGreaterThanOrEqual(profile.rating);
+		expect(profile.matches[0].id).toBe(6);
+	});
+
+	test("head-to-head counts every match both played, including 3-player ones", () => {
+		const bob = profile.rivals.find((r) => r.opponent === "Bob");
+		expect(bob).toMatchObject({ played: 4, wins: 2, draws: 1, losses: 1 });
+		// In match 4 Alice (1) beat Cat (0) head-to-head even though Bob won.
+		expect(headToHead(matches, "Alice", "Cat")).toMatchObject({
+			wins: 3,
+			losses: 0,
+		});
+	});
+
+	test("unknown player has no profile", () => {
+		expect(computePlayerProfile(matches, "Zed", elo)).toBeNull();
+	});
+});
+
+test("playerResult", () => {
+	const m = match(1, 1, { A: 3, B: 3, C: 1 });
+	expect(playerResult(m, "A")).toBe("D");
+	expect(playerResult(m, "C")).toBe("L");
+	expect(playerResult(match(1, 1, { A: 3, B: 1 }), "A")).toBe("W");
 });

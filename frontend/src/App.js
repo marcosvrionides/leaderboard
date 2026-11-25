@@ -4,6 +4,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import Leaderboards from "./Leaderboards/Leaderboards";
 import { LeaderboardDrillDown } from "./LeaderboardDrillDown/LeaderboardDrillDown";
 import CreateLeaderboard from "./CreateLeaderboard/CreateLeaderboard";
+import PlayerProfile from "./PlayerProfile/PlayerProfile";
 import useTheme from "./useTheme";
 
 const App = () => {
@@ -82,6 +83,10 @@ const App = () => {
 			<Route
 				path="/leaderboard/:name"
 				element={<LeaderboardDrillDown />}
+			/>
+			<Route
+				path="/leaderboard/:name/player/:player"
+				element={<PlayerProfile />}
 			/>
 			<Route path="/create-leaderboard" element={<CreateLeaderboard />} />
 		</Routes>

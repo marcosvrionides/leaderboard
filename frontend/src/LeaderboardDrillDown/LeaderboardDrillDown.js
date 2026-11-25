@@ -2,7 +2,12 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { STARTING_RATING } from "../elo";
 import { apiFetch, seg } from "../api";
-import { computeStandings, newestFirst, normaliseMatches } from "../stats";
+import {
+	computeStandings,
+	newestFirst,
+	normaliseMatches,
+	plural,
+} from "../stats";
 import EloInfoModal from "./EloInfoModal";
 import AddMatchModal from "./AddMatchModal";
 import DeleteMatchModal from "./DeleteMatchModal";
@@ -75,7 +80,7 @@ export const LeaderboardDrillDown = () => {
 				<h1 className="drill-title">{name}</h1>
 				<p className="drill-subtitle">
 					{leaderboardData
-						? `${leaderboardData.length} matches played`
+						? `${plural(leaderboardData.length, "match", "matches")} played`
 						: loadError
 							? " "
 							: "Loading..."}
@@ -137,10 +142,14 @@ export const LeaderboardDrillDown = () => {
 								</div>
 								<div className="standing-stats">
 									<span className="stat">
-										<strong>{r.matchWins}</strong> matches
+										<strong>{r.matchWins}</strong>{" "}
+										{r.matchWins === 1
+											? "match"
+											: "matches"}
 									</span>
 									<span className="stat">
-										<strong>{r.gameWins}</strong> games
+										<strong>{r.gameWins}</strong>{" "}
+										{r.gameWins === 1 ? "game" : "games"}
 									</span>
 								</div>
 								<div className="win-bars">

@@ -33,8 +33,8 @@ const Leaderboards = ({ searchTerm = "" }) => {
 	const favouriteCards = leaderboards.filter((lb) => isFavourite(lb.name));
 	const otherCards = filtered.filter((lb) => !isFavourite(lb.name));
 
+	// React keys can't be passed via a spread, so each card sets key={lb.name}.
 	const cardProps = (lb) => ({
-		key: lb.name,
 		data: lb,
 		isFavourite: isFavourite(lb.name),
 		onToggleFavourite: toggleFavourite,
@@ -54,7 +54,11 @@ const Leaderboards = ({ searchTerm = "" }) => {
 				) : (
 					<div className="leaderboards-list">
 						{filtered.map((lb, i) => (
-							<LeaderboardCard {...cardProps(lb)} index={i} />
+							<LeaderboardCard
+								key={lb.name}
+								{...cardProps(lb)}
+								index={i}
+							/>
 						))}
 					</div>
 				)}
@@ -88,6 +92,7 @@ const Leaderboards = ({ searchTerm = "" }) => {
 					<div className="leaderboards-list">
 						{favouriteCards.map((lb, i) => (
 							<LeaderboardCard
+								key={lb.name}
 								{...cardProps(lb)}
 								index={i}
 								hideIndex={true}
@@ -117,7 +122,11 @@ const Leaderboards = ({ searchTerm = "" }) => {
 					{!error && !loading && otherCards.length > 0 && (
 						<div className="leaderboards-list">
 							{otherCards.map((lb, i) => (
-								<LeaderboardCard {...cardProps(lb)} index={i} />
+								<LeaderboardCard
+									key={lb.name}
+									{...cardProps(lb)}
+									index={i}
+								/>
 							))}
 						</div>
 					)}

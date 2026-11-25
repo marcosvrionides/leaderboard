@@ -17,6 +17,7 @@ This frontend is a React app for a leaderboard service. It connects to the backe
 - Lets board owners rename a player, or merge two names for the same person, from **Manage**.
 - Standings show each player's last five results, a 🔥 streak for 3+ wins in a row, and how many places they've moved since a week ago (▲/▼, or NEW).
 - "Who'd win?": pick any two players to see each one's chance of winning (from Elo), their head-to-head record, and how many points a win would be worth.
+- **Share** button on each board: uses the phone's share sheet or copies a link. The link shows a rich preview in chat apps (board name, current leader, and a preview image) and opens the board.
 - Player profile pages (tap a player in the standings or match history): Elo, peak, win rate, streaks, last-5 form, a rating-over-time chart, head-to-head records against each opponent, and their match history.
 - Supports light and dark theme switching.
 

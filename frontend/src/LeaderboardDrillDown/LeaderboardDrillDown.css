@@ -40,6 +40,27 @@
 	color: var(--accent-ink);
 }
 
+.drill-actions {
+	display: flex;
+	gap: 8px;
+}
+
+.toast {
+	position: fixed;
+	left: 50%;
+	bottom: 96px;
+	transform: translateX(-50%);
+	background: var(--text-primary);
+	color: var(--bg-primary);
+	font-size: 13px;
+	font-weight: 500;
+	padding: 10px 16px;
+	border-radius: 999px;
+	box-shadow: 0 4px 24px var(--shadow);
+	z-index: 300;
+	animation: slideUp 0.25s ease both;
+}
+
 .drill-manage {
 	background: transparent;
 	border: 1px solid var(--border-medium);

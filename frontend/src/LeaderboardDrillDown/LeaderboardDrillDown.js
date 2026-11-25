@@ -9,6 +9,7 @@ import DeleteMatchModal from "./DeleteMatchModal";
 import MatchCard from "./MatchCard";
 import Standings from "./Standings";
 import Predictor from "./Predictor";
+import ShareButton from "./ShareButton";
 import ManageBoardModal from "./ManageBoardModal";
 import RenamePlayerModal from "./RenamePlayerModal";
 import "./LeaderboardDrillDown.css";
@@ -51,13 +52,23 @@ export const LeaderboardDrillDown = () => {
 					<Link className="drill-back" to="/">
 						← All leaderboards
 					</Link>
-					<button
-						type="button"
-						className="drill-manage"
-						onClick={() => setManageDialog("manage")}
-					>
-						Manage
-					</button>
+					<div className="drill-actions">
+						<ShareButton
+							board={name}
+							text={
+								rankings.length > 0
+									? `${rankings[0].player} leads ${name} with ${Math.round(rankings[0].elo)} Elo`
+									: `Join ${name} and get on the board`
+							}
+						/>
+						<button
+							type="button"
+							className="drill-manage"
+							onClick={() => setManageDialog("manage")}
+						>
+							Manage
+						</button>
+					</div>
 				</div>
 				<h1 className="drill-title">{name}</h1>
 				<p className="drill-subtitle">

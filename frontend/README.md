@@ -20,6 +20,7 @@ This frontend is a React app for a leaderboard service. It connects to the backe
 - **Share** button on each board: uses the phone's share sheet or copies a link. The link shows a rich preview in chat apps (board name, current leader, and a preview image) and opens the board.
 - Seasons: from **Manage**, start a new season to crown the current leader as champion and reset everyone to 1000 Elo. Past seasons (and an all-time view) stay available from the season picker, with a list of past champions.
 - TV display (Manage → TV display, or `/leaderboard/<name>/tv`): full-screen standings and latest results for a screen in the office or pub. Refreshes every 30 seconds, keeps the screen awake where supported, and hides the cursor and controls when idle.
+- Tournaments (Manage → Start a tournament): knockout brackets for any group of players, seeded by Elo or drawn at random, with byes for the top seeds. Record results on the bracket; each game is saved as a normal match, so it counts towards Elo. Results can be undone until the next round is played.
 - Player profile pages (tap a player in the standings or match history): Elo, peak, win rate, streaks, last-5 form, a rating-over-time chart, head-to-head records against each opponent, and their match history.
 - Supports light and dark theme switching.
 

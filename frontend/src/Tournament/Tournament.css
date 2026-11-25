@@ -1,0 +1,260 @@
+/* ── Champion banner ─────────────────────────────── */
+.tournament-champion {
+	max-width: 712px;
+	margin: 24px auto 0;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	padding: 16px 20px;
+	border-radius: 12px;
+	border: 1px solid var(--accent-a34);
+	background: linear-gradient(90deg, var(--accent-a20), var(--accent-a10));
+}
+.tournament-trophy {
+	font-size: 36px;
+}
+.tournament-champion > span:last-child {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+.tournament-champion-label {
+	font-size: 11px;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: var(--text-muted-1);
+}
+.tournament-champion-name {
+	font-family: "Bebas Neue", sans-serif;
+	font-size: 34px;
+	letter-spacing: 0.05em;
+	line-height: 1;
+	color: var(--text-primary);
+	text-decoration: none;
+}
+
+/* ── Bracket ─────────────────────────────────────── */
+.bracket-scroll {
+	overflow-x: auto;
+	padding: 0 24px 8px;
+	-webkit-overflow-scrolling: touch;
+}
+.bracket {
+	display: grid;
+	grid-template-columns: repeat(var(--rounds), minmax(190px, 240px));
+	justify-content: center;
+	gap: 22px;
+	margin: 28px auto 0;
+	width: max-content;
+	min-width: 100%;
+}
+.bracket-round {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+.bracket-round-name {
+	margin: 0;
+	font-size: 11px;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: var(--text-muted-2);
+	font-weight: 500;
+}
+/* space-around puts each later-round game between the two games feeding it. */
+.bracket-slots {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-around;
+	gap: 12px;
+}
+.bracket-slot {
+	background: var(--bg-card);
+	border: 1px solid var(--border-subtle);
+	border-radius: 10px;
+	padding: 6px 0;
+	display: flex;
+	flex-direction: column;
+	animation: slideUp 0.35s ease both;
+}
+.bracket-slot.ready {
+	border-color: var(--accent-a34);
+}
+.bracket-slot.bye {
+	opacity: 0.6;
+	padding: 4px 0;
+}
+.bracket-side {
+	display: grid;
+	grid-template-columns: 22px minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 6px;
+	padding: 5px 12px;
+	font-size: 14px;
+	color: var(--text-muted-1);
+}
+.bracket-side + .bracket-side {
+	border-top: 1px solid var(--border-subtle);
+}
+.bracket-side.winner {
+	color: var(--text-primary);
+	font-weight: 600;
+}
+.bracket-side.tbd {
+	color: var(--text-muted-3);
+	font-style: italic;
+}
+.bracket-seed {
+	font-size: 10px;
+	color: var(--text-muted-2);
+	font-variant-numeric: tabular-nums;
+}
+.bracket-name {
+	color: inherit;
+	text-decoration: none;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+a.bracket-name:hover {
+	color: var(--accent-ink);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+.bracket-score {
+	font-family: "Bebas Neue", sans-serif;
+	font-size: 20px;
+	line-height: 1;
+	min-width: 14px;
+	text-align: right;
+}
+.bracket-side.winner .bracket-score {
+	color: var(--accent-ink);
+}
+.bracket-bye-note {
+	padding: 0 12px 2px 40px;
+	font-size: 11px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--text-muted-2);
+}
+.bracket-action {
+	margin: 6px 10px 4px;
+	background: var(--accent);
+	color: var(--accent-text);
+	border: none;
+	border-radius: 6px;
+	padding: 7px 10px;
+	font-family: "DM Sans", sans-serif;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	cursor: pointer;
+}
+.bracket-action:hover {
+	background: var(--accent-hover);
+}
+.bracket-undo {
+	align-self: flex-end;
+	margin: 2px 10px 0;
+	background: transparent;
+	border: none;
+	padding: 2px 0;
+	font-family: "DM Sans", sans-serif;
+	font-size: 11px;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: var(--text-muted-3);
+	cursor: pointer;
+}
+.bracket-undo:hover {
+	color: var(--error-text);
+}
+.bracket-hint {
+	max-width: 712px;
+	margin: 16px auto 0;
+	padding: 0 24px;
+	font-size: 12px;
+	color: var(--text-muted-2);
+	text-align: center;
+}
+
+/* ── Player picker (new tournament) ──────────────── */
+.player-picker {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	max-height: 220px;
+	overflow-y: auto;
+}
+.player-pick {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 7px 12px;
+	border-radius: 999px;
+	border: 1px solid var(--border-medium);
+	background: var(--bg-input);
+	font-size: 13px;
+	color: var(--text-muted-1);
+	cursor: pointer;
+	user-select: none;
+}
+.player-pick.on {
+	border-color: var(--accent-a53);
+	background: var(--accent-a10);
+	color: var(--text-primary);
+	font-weight: 500;
+}
+.player-pick input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+.player-pick:focus-within {
+	outline: 2px solid var(--accent-a53);
+	outline-offset: 1px;
+}
+.player-picker-add {
+	display: flex;
+	gap: 8px;
+	margin-top: 8px;
+}
+.modal .player-picker-add input {
+	flex: 1;
+	background: var(--bg-input);
+	border: 1px solid var(--border-medium);
+	border-radius: 8px;
+	color: var(--text-primary);
+	font-family: "DM Sans", sans-serif;
+	font-size: 15px;
+	padding: 10px 12px;
+	outline: none;
+	min-width: 0;
+}
+.player-picker-add button {
+	background: transparent;
+	border: 1px solid var(--border-medium);
+	border-radius: 8px;
+	padding: 0 16px;
+	font-family: "DM Sans", sans-serif;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--text-primary);
+	cursor: pointer;
+}
+
+/* Tournament rows on the board page reuse the champion row styles. */
+a.tournament-row {
+	text-decoration: none;
+}
+
+@media (max-width: 600px) {
+	.bracket-scroll {
+		padding: 0 16px 8px;
+	}
+	.bracket {
+		justify-content: start;
+	}
+}

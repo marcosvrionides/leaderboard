@@ -16,9 +16,11 @@ import java.util.stream.Collectors;
 public class PlayerService {
 
     private final MatchParticipantRepository participants;
+    private final TournamentRepository tournaments;
 
-    public PlayerService(MatchParticipantRepository participants) {
+    public PlayerService(MatchParticipantRepository participants, TournamentRepository tournaments) {
         this.participants = participants;
+        this.tournaments = tournaments;
     }
 
     /**
@@ -94,6 +96,27 @@ public class PlayerService {
         // Merging into an existing player keeps their spelling, so choosing
         // "jo" from the list merges into "Jo" without renaming Jo.
         String finalName = target.isEmpty() ? toName : canonicalNames(board).get(toKey);
+
+        // Tournament brackets list players by name, so they follow the rename.
+        List<Tournament> boardTournaments = tournaments.findByLeaderboardNameOrderByCreatedAtDesc(board);
+        for (Tournament t : boardTournaments) {
+            boolean hasFrom = t.getPlayers().stream().anyMatch(p -> PlayerNames.key(p).equals(fromKey));
+            boolean hasTo = merging && t.getPlayers().stream().anyMatch(p -> PlayerNames.key(p).equals(toKey));
+            if (hasFrom && hasTo) {
+                throw new ApiException(HttpStatus.CONFLICT, String.format(
+                        "%s and %s are both in the %s tournament, so they can't be the same person.",
+                        PlayerNames.clean(from), finalName, t.getName()));
+            }
+        }
+        for (Tournament t : boardTournaments) {
+            List<String> renamed = t.getPlayers().stream()
+                    .map(p -> PlayerNames.key(p).equals(fromKey) ? finalName : p)
+                    .toList();
+            if (!renamed.equals(t.getPlayers())) {
+                t.setPlayers(new ArrayList<>(renamed));
+                tournaments.save(t);
+            }
+        }
 
         List<MatchParticipant> changed = new ArrayList<>(source);
         changed.addAll(target);

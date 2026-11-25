@@ -17,15 +17,18 @@ public class MatchController {
     private final LeaderboardRepository leaderboardRepository;
     private final PasswordEncoder passwordEncoder;
     private final PlayerService playerService;
+    private final TournamentService tournamentService;
 
     public MatchController(MatchRepository matchRepository,
                             LeaderboardRepository leaderboardRepository,
                             PasswordEncoder passwordEncoder,
-                            PlayerService playerService) {
+                            PlayerService playerService,
+                            TournamentService tournamentService) {
         this.matchRepository = matchRepository;
         this.leaderboardRepository = leaderboardRepository;
         this.passwordEncoder = passwordEncoder;
         this.playerService = playerService;
+        this.tournamentService = tournamentService;
     }
 
     @GetMapping("/leaderboard/{leaderboardName}")
@@ -70,6 +73,9 @@ public class MatchController {
             throw new InvalidLeaderboardPasswordException();
         }
 
+        // Tournament games: removes the bracket result too, or refuses if the
+        // winner has already played their next round.
+        tournamentService.beforeMatchDelete(match);
         matchRepository.delete(match);
         return ResponseEntity.noContent().build();
     }

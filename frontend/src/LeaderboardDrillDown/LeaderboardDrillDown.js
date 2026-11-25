@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { computeStandings, computeTrends, newestFirst, plural } from "../stats";
 import { boardPath, playerPath } from "../paths";
@@ -22,6 +22,10 @@ import ManageBoardModal from "./ManageBoardModal";
 import RenamePlayerModal from "./RenamePlayerModal";
 import { PastChampions, SeasonPicker, StartSeasonModal } from "./Seasons";
 import VisibilityModal from "./VisibilityModal";
+import CreateTournamentModal from "../Tournament/CreateTournamentModal";
+import TournamentList from "../Tournament/TournamentList";
+import "../Tournament/Tournament.css";
+import { apiFetch, seg } from "../api";
 import "./LeaderboardDrillDown.css";
 
 export const LeaderboardDrillDown = () => {
@@ -46,6 +50,17 @@ export const LeaderboardDrillDown = () => {
 	// Owner dialogs: null, "manage" (the menu) or one of its actions.
 	const [manageDialog, setManageDialog] = useState(null);
 	const closeManage = useCallback(() => setManageDialog(null), []);
+	const [tournaments, setTournaments] = useState([]);
+	const loadTournaments = useCallback(
+		() =>
+			apiFetch(`/api/leaderboards/${seg(name)}/tournaments`)
+				.then(setTournaments)
+				.catch(() => setTournaments([])),
+		[name],
+	);
+	useEffect(() => {
+		loadTournaments();
+	}, [loadTournaments]);
 
 	// Everything below the header is for the selected season.
 	const matches = useMemo(
@@ -69,10 +84,11 @@ export const LeaderboardDrillDown = () => {
 		() => filterBySeason(allMatches, currentSeason) || [],
 		[allMatches, currentSeason],
 	);
-	const currentLeader = useMemo(
-		() => computeStandings(currentSeasonMatches).rankings[0],
+	const currentSeasonStandings = useMemo(
+		() => computeStandings(currentSeasonMatches).rankings,
 		[currentSeasonMatches],
 	);
+	const currentLeader = currentSeasonStandings[0];
 	const champions = useMemo(
 		() => pastChampions(allMatches, currentSeason),
 		[allMatches, currentSeason],
@@ -262,6 +278,13 @@ export const LeaderboardDrillDown = () => {
 				</section>
 			)}
 
+			{tournaments.length > 0 && (
+				<section className="predictor-section">
+					<h2 className="section-label">Tournaments</h2>
+					<TournamentList board={name} tournaments={tournaments} />
+				</section>
+			)}
+
 			{champions.length > 0 && !viewingPast && (
 				<section className="predictor-section">
 					<h2 className="section-label">Past champions</h2>
@@ -333,6 +356,13 @@ export const LeaderboardDrillDown = () => {
 							onSelect: () => navigate(`${boardPath(name)}/tv`),
 						},
 						{
+							id: "tournament",
+							title: "Start a tournament",
+							description:
+								"A knockout bracket for any group of players. Games count towards Elo.",
+							onSelect: () => setManageDialog("tournament"),
+						},
+						{
 							id: "rename",
 							title: "Rename or merge a player",
 							description:
@@ -378,6 +408,25 @@ export const LeaderboardDrillDown = () => {
 				/>
 			)}
 
+			{manageDialog === "tournament" && (
+				<CreateTournamentModal
+					board={name}
+					players={[
+						...currentSeasonStandings.map((r) => r.player),
+						...knownPlayerNames.filter(
+							(p) =>
+								!currentSeasonStandings.some(
+									(r) => r.player === p,
+								),
+						),
+					]}
+					onClose={closeManage}
+					onCreated={(t) =>
+						navigate(`${boardPath(name)}/tournament/${t.id}`)
+					}
+				/>
+			)}
+
 			{manageDialog === "visibility" && (
 				<VisibilityModal
 					board={name}
@@ -414,6 +463,7 @@ export const LeaderboardDrillDown = () => {
 					onDeleted={() => {
 						setMatchToDelete(null);
 						fetchMatches();
+						loadTournaments();
 					}}
 				/>
 			)}

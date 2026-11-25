@@ -16,6 +16,7 @@ class PlayerServiceTests {
 
     private final List<MatchParticipant> stored = new ArrayList<>();
     private MatchParticipantRepository repository;
+    private TournamentRepository tournaments;
     private PlayerService service;
     private long nextMatchId = 1;
 
@@ -23,7 +24,8 @@ class PlayerServiceTests {
     void setUp() {
         repository = mock(MatchParticipantRepository.class);
         when(repository.findByBoard("Pool")).thenReturn(stored);
-        service = new PlayerService(repository);
+        tournaments = mock(TournamentRepository.class);
+        service = new PlayerService(repository, tournaments);
     }
 
     /** Adds a stored match with the given player names. */
@@ -143,5 +145,34 @@ class PlayerServiceTests {
 
         ApiException ex = assertThrows(ApiException.class, () -> service.rename("Pool", "Nobody", "X"));
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatus());
+    }
+
+    @Test
+    void renamesFollowIntoTournamentBrackets() {
+        storedMatch(1, "Marc", "Sam");
+        Tournament cup = new Tournament();
+        cup.setName("Cup");
+        cup.setPlayers(new java.util.ArrayList<>(List.of("Sam", "marc", "Jo")));
+        when(tournaments.findByLeaderboardNameOrderByCreatedAtDesc("Pool")).thenReturn(List.of(cup));
+
+        service.rename("Pool", "Marc", "Marcos");
+
+        assertEquals(List.of("Sam", "Marcos", "Jo"), cup.getPlayers());
+        verify(tournaments).save(cup);
+    }
+
+    @Test
+    void playersInTheSameTournamentCantBeMerged() {
+        storedMatch(1, "Marc", "Sam");
+        storedMatch(2, "Marcos", "Jo");
+        Tournament cup = new Tournament();
+        cup.setName("Cup");
+        cup.setPlayers(new java.util.ArrayList<>(List.of("Marc", "Marcos", "Jo")));
+        when(tournaments.findByLeaderboardNameOrderByCreatedAtDesc("Pool")).thenReturn(List.of(cup));
+
+        ApiException ex = assertThrows(ApiException.class, () -> service.rename("Pool", "Marc", "Marcos"));
+        assertEquals(HttpStatus.CONFLICT, ex.getStatus());
+        assertTrue(ex.getMessage().contains("Cup"), ex.getMessage());
+        verify(repository, never()).saveAll(anyList());
     }
 }

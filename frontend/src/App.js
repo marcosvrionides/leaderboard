@@ -6,6 +6,7 @@ import { LeaderboardDrillDown } from "./LeaderboardDrillDown/LeaderboardDrillDow
 import CreateLeaderboard from "./CreateLeaderboard/CreateLeaderboard";
 import PlayerProfile from "./PlayerProfile/PlayerProfile";
 import TvMode from "./TvMode/TvMode";
+import TournamentPage from "./Tournament/TournamentPage";
 import useTheme from "./useTheme";
 
 const App = () => {
@@ -90,6 +91,10 @@ const App = () => {
 				element={<PlayerProfile />}
 			/>
 			<Route path="/leaderboard/:name/tv" element={<TvMode />} />
+			<Route
+				path="/leaderboard/:name/tournament/:id"
+				element={<TournamentPage />}
+			/>
 			<Route path="/create-leaderboard" element={<CreateLeaderboard />} />
 		</Routes>
 	);

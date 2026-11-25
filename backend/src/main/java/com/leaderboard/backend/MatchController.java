@@ -16,13 +16,16 @@ public class MatchController {
     private final MatchRepository matchRepository;
     private final LeaderboardRepository leaderboardRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PlayerService playerService;
 
     public MatchController(MatchRepository matchRepository,
                             LeaderboardRepository leaderboardRepository,
-                            PasswordEncoder passwordEncoder) {
+                            PasswordEncoder passwordEncoder,
+                            PlayerService playerService) {
         this.matchRepository = matchRepository;
         this.leaderboardRepository = leaderboardRepository;
         this.passwordEncoder = passwordEncoder;
+        this.playerService = playerService;
     }
 
     @GetMapping
@@ -55,6 +58,8 @@ public class MatchController {
         // from the request body) so the relationship persists correctly.
         match.setLeaderboard(leaderboard);
         match.getParticipants().forEach(p -> p.setMatch(match));
+        // "marcos " joins the existing "Marcos" instead of becoming a new player.
+        playerService.applyCanonicalNames(leaderboardName, match.getParticipants());
         return matchRepository.save(match);
     }
 

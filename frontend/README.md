@@ -13,6 +13,8 @@ This frontend is a React app for a leaderboard service. It connects to the backe
 - Lets users add a new match result to a leaderboard by entering player names, game scores, an optional note, and the leaderboard password.
 - Lets users delete a match (leaderboard password required); ratings are recalculated automatically.
 - Remembers a board's password for the rest of the browser session after it's used once.
+- Treats player names that differ only in capitals or spacing ("Marcos", "marcos ") as the same player, both when saving matches and when showing older data.
+- Lets board owners rename a player, or merge two names for the same person, from **Manage**.
 - Supports light and dark theme switching.
 
 ## How to run

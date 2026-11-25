@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Modal, { PasswordField } from "../Modal/Modal";
 import { apiFetch } from "../api";
 import useBoardPassword from "../useBoardPassword";
+import { cleanName, playerKey } from "../stats";
 
 const emptyParticipant = () => ({ name: "", gamesWon: "" });
 
@@ -22,8 +23,11 @@ const AddMatchModal = ({ board, knownPlayerNames, onClose, onSaved }) => {
 		);
 
 	const handleSubmit = async () => {
+		// Use an existing player's spelling when the name matches them
+		// ignoring capitals and spacing, so "marcos " joins "Marcos".
+		const known = new Map(knownPlayerNames.map((n) => [playerKey(n), n]));
 		const trimmed = participants.map((p) => ({
-			name: p.name.trim().replace(/\s+/g, " "),
+			name: known.get(playerKey(p.name)) || cleanName(p.name),
 			gamesWon: p.gamesWon,
 		}));
 
@@ -37,7 +41,7 @@ const AddMatchModal = ({ board, knownPlayerNames, onClose, onSaved }) => {
 			);
 			return;
 		}
-		const keys = trimmed.map((p) => p.name.toLowerCase());
+		const keys = trimmed.map((p) => playerKey(p.name));
 		if (new Set(keys).size !== keys.length) {
 			setError("Each player can only appear once in a match.");
 			return;

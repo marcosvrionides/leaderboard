@@ -1,5 +1,49 @@
 import { computeEloRatings, STARTING_RATING } from "./elo";
 
+// Two names refer to the same player if they only differ in capitals or
+// spacing ("Marcos", "marcos", "Marcos "). Mirrors PlayerNames on the backend.
+export const cleanName = (name) => (name || "").trim().replace(/\s+/g, " ");
+export const playerKey = (name) => cleanName(name).toLowerCase();
+
+/**
+ * Rewrites every player name to one consistent spelling per player: the
+ * most used spelling, ties going to the most recent. Old data entered
+ * before names were matched automatically then shows as a single player.
+ */
+export const normaliseMatches = (matches) => {
+	if (!matches) return matches;
+	const usage = new Map(); // key -> Map(spelling -> { count, last })
+	matches.forEach((m) =>
+		m.participants.forEach((p) => {
+			const spelling = cleanName(p.playerName);
+			const key = playerKey(spelling);
+			if (!usage.has(key)) usage.set(key, new Map());
+			const u = usage.get(key).get(spelling) || {
+				count: 0,
+				last: -Infinity,
+			};
+			usage.get(key).set(spelling, {
+				count: u.count + 1,
+				last: Math.max(u.last, m.timestamp),
+			});
+		}),
+	);
+	const canonical = new Map();
+	usage.forEach((spellings, key) => {
+		const [best] = [...spellings.entries()].sort(
+			([, a], [, b]) => b.count - a.count || b.last - a.last,
+		)[0];
+		canonical.set(key, best);
+	});
+	return matches.map((m) => ({
+		...m,
+		participants: m.participants.map((p) => ({
+			...p,
+			playerName: canonical.get(playerKey(p.playerName)),
+		})),
+	}));
+};
+
 // A match win is only credited when there's a single, outright top score.
 // A tie for the top score means nobody gets credited for that match.
 export const getMatchWinnerNames = (participants) => {

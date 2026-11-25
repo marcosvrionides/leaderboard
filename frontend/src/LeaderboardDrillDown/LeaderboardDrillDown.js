@@ -1,12 +1,14 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { STARTING_RATING } from "../elo";
 import { apiFetch, seg } from "../api";
-import { computeStandings, newestFirst } from "../stats";
+import { computeStandings, newestFirst, normaliseMatches } from "../stats";
 import EloInfoModal from "./EloInfoModal";
 import AddMatchModal from "./AddMatchModal";
 import DeleteMatchModal from "./DeleteMatchModal";
 import MatchCard from "./MatchCard";
+import ManageBoardModal from "./ManageBoardModal";
+import RenamePlayerModal from "./RenamePlayerModal";
 import "./LeaderboardDrillDown.css";
 
 export const LeaderboardDrillDown = () => {
@@ -19,6 +21,9 @@ export const LeaderboardDrillDown = () => {
 	const closeEloInfo = useCallback(() => setEloInfoOpen(false), []);
 	const closeAdd = useCallback(() => setAddOpen(false), []);
 	const closeDelete = useCallback(() => setMatchToDelete(null), []);
+	// Owner dialogs: null, "manage" (the menu) or one of its actions.
+	const [manageDialog, setManageDialog] = useState(null);
+	const closeManage = useCallback(() => setManageDialog(null), []);
 
 	const fetchMatches = useCallback(() => {
 		setLoadError(null);
@@ -36,10 +41,15 @@ export const LeaderboardDrillDown = () => {
 		fetchMatches();
 	}, [fetchMatches]);
 
-	const { rankings, elo } = computeStandings(leaderboardData);
+	// One consistent spelling per player, however their name was typed.
+	const matches = useMemo(
+		() => normaliseMatches(leaderboardData),
+		[leaderboardData],
+	);
+	const { rankings, elo } = computeStandings(matches);
 	const maxMatchWins = Math.max(0, ...rankings.map((r) => r.matchWins));
 	const maxGameWins = Math.max(0, ...rankings.map((r) => r.gameWins));
-	const sortedMatches = newestFirst(leaderboardData);
+	const sortedMatches = newestFirst(matches);
 	const knownPlayerNames = rankings
 		.map((r) => r.player)
 		.sort((a, b) => a.localeCompare(b));
@@ -54,6 +64,13 @@ export const LeaderboardDrillDown = () => {
 					>
 						← Back
 					</div>
+					<button
+						type="button"
+						className="drill-manage"
+						onClick={() => setManageDialog("manage")}
+					>
+						Manage
+					</button>
 				</div>
 				<h1 className="drill-title">{name}</h1>
 				<p className="drill-subtitle">
@@ -197,6 +214,36 @@ export const LeaderboardDrillDown = () => {
 					onClose={closeAdd}
 					onSaved={() => {
 						setAddOpen(false);
+						fetchMatches();
+					}}
+				/>
+			)}
+
+			{manageDialog === "manage" && (
+				<ManageBoardModal
+					onClose={closeManage}
+					actions={[
+						{
+							id: "rename",
+							title: "Rename or merge a player",
+							description:
+								rankings.length > 0
+									? "Fix a typo, or combine two names for the same person."
+									: "Available once games have been played.",
+							disabled: rankings.length === 0,
+							onSelect: () => setManageDialog("rename"),
+						},
+					]}
+				/>
+			)}
+
+			{manageDialog === "rename" && (
+				<RenamePlayerModal
+					board={name}
+					players={rankings}
+					onClose={closeManage}
+					onRenamed={() => {
+						setManageDialog(null);
 						fetchMatches();
 					}}
 				/>

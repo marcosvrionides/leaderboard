@@ -17,7 +17,15 @@ public class ApiExceptionHandler {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error ->
                 errors.put(error.getField(), error.getDefaultMessage()));
+        // Also expose the first problem under "error", like every other error response.
+        ex.getBindingResult().getAllErrors().stream().findFirst()
+                .ifPresent(error -> errors.put("error", error.getDefaultMessage()));
         return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<Map<String, String>> handleApiException(ApiException ex) {
+        return ResponseEntity.status(ex.getStatus()).body(Map.of("error", ex.getMessage()));
     }
 
     @ExceptionHandler(InvalidLeaderboardPasswordException.class)

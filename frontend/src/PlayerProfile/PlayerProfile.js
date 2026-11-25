@@ -11,6 +11,9 @@ import {
 } from "../stats";
 import { boardPath, playerPath } from "../paths";
 import useBoardMatches from "../useBoardMatches";
+import useBoard from "../useBoard";
+import { filterBySeason, seasonLabel, useSeasonSelection } from "../seasons";
+import { SeasonPicker } from "../LeaderboardDrillDown/Seasons";
 import MatchCard from "../LeaderboardDrillDown/MatchCard";
 import RenamePlayerModal from "../LeaderboardDrillDown/RenamePlayerModal";
 import EloChart from "./EloChart";
@@ -69,7 +72,25 @@ const describeMatch = (match, player) => {
 const PlayerProfile = () => {
 	const { name, player: playerParam } = useParams();
 	const navigate = useNavigate();
-	const { matches, error, reload } = useBoardMatches(name);
+	const { matches: allMatches, error, reload } = useBoardMatches(name);
+	const { board } = useBoard(name);
+	const currentSeason = board.currentSeason;
+	const hasSeasons = currentSeason > 1;
+	const season = useSeasonSelection(currentSeason);
+	const matches = useMemo(
+		() => filterBySeason(allMatches, season.selected),
+		[allMatches, season.selected],
+	);
+	// Does this player exist in any season? (For "no games this season".)
+	const everPlayed = useMemo(
+		() =>
+			(allMatches || []).some((m) =>
+				m.participants.some(
+					(p) => playerKey(p.playerName) === playerKey(playerParam),
+				),
+			),
+		[allMatches, playerParam],
+	);
 	const [renameOpen, setRenameOpen] = useState(false);
 	const [showAll, setShowAll] = useState(false);
 	const closeRename = useCallback(() => setRenameOpen(false), []);
@@ -77,6 +98,10 @@ const PlayerProfile = () => {
 	const { rankings, elo } = useMemo(
 		() => computeStandings(matches),
 		[matches],
+	);
+	const allPlayers = useMemo(
+		() => computeStandings(allMatches).rankings,
+		[allMatches],
 	);
 	// Match the URL to a player ignoring capitals/spacing, then use their real spelling.
 	const ranking = rankings.find(
@@ -95,7 +120,10 @@ const PlayerProfile = () => {
 	const header = (
 		<div className="drill-header">
 			<div className="drill-header-top">
-				<Link className="drill-back" to={boardPath(name)}>
+				<Link
+					className="drill-back"
+					to={boardPath(name) + season.query}
+				>
 					← {name}
 				</Link>
 				{profile && (
@@ -109,13 +137,22 @@ const PlayerProfile = () => {
 				)}
 			</div>
 			<h1 className="drill-title">{player || playerParam}</h1>
-			<p className="drill-subtitle">
-				{profile
-					? `#${rankings.indexOf(ranking) + 1} of ${rankings.length} · ${name}`
-					: matches || error
-						? " "
-						: "Loading..."}
-			</p>
+			<div className="drill-subtitle-row">
+				{hasSeasons && (
+					<SeasonPicker
+						currentSeason={currentSeason}
+						selected={season.selected}
+						onSelect={season.select}
+					/>
+				)}
+				<p className="drill-subtitle">
+					{profile
+						? `#${rankings.indexOf(ranking) + 1} of ${rankings.length} · ${name}`
+						: matches || error
+							? " "
+							: "Loading..."}
+				</p>
+			</div>
 		</div>
 	);
 
@@ -124,14 +161,31 @@ const PlayerProfile = () => {
 			<div className="drill-container">
 				{header}
 				<div className="empty-state">
-					<div className="empty-icon">{error ? "⚠️" : "🔍"}</div>
+					<div className="empty-icon">
+						{error ? "⚠️" : everPlayed ? "🗓️" : "🔍"}
+					</div>
 					<h2 className="empty-title">
-						{error ? "Something went wrong" : "Player not found"}
+						{error
+							? "Something went wrong"
+							: everPlayed
+								? `No games in ${seasonLabel(season.selected)}`
+								: "Player not found"}
 					</h2>
 					<p className="empty-subtitle">
 						{error ||
-							`There's no player called "${playerParam}" on ${name}.`}
+							(everPlayed
+								? `${playerParam} hasn't played in ${seasonLabel(season.selected)} yet.`
+								: `There's no player called "${playerParam}" on ${name}.`)}
 					</p>
+					{!error && everPlayed && (
+						<button
+							type="button"
+							className="show-all-button narrow"
+							onClick={() => season.select("all")}
+						>
+							See all-time stats
+						</button>
+					)}
 				</div>
 			</div>
 		);
@@ -155,7 +209,7 @@ const PlayerProfile = () => {
 	const recent = showAll
 		? profile.matches
 		: profile.matches.slice(0, RECENT_LIMIT);
-	const goToPlayer = (p) => navigate(playerPath(name, p));
+	const goToPlayer = (p) => navigate(playerPath(name, p) + season.query);
 
 	return (
 		<div className="drill-container">
@@ -299,13 +353,15 @@ const PlayerProfile = () => {
 			{renameOpen && (
 				<RenamePlayerModal
 					board={name}
-					players={rankings}
+					players={allPlayers}
 					initialPlayer={player}
 					onClose={closeRename}
 					onRenamed={(newName) => {
 						setRenameOpen(false);
 						reload();
-						navigate(playerPath(name, newName), { replace: true });
+						navigate(playerPath(name, newName) + season.query, {
+							replace: true,
+						});
 					}}
 				/>
 			)}

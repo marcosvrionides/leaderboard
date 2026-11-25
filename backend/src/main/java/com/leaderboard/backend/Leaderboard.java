@@ -21,6 +21,15 @@ public class Leaderboard {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
+    // Seasons. Nullable so the columns can be added to an existing database;
+    // null means the board is still on season 1. Read-only in the API: a new
+    // season is started with POST /api/leaderboards/{name}/seasons.
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Integer currentSeason;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Long currentSeasonStartedAt;
+
     public String getName() {
         return name;
     }
@@ -35,5 +44,21 @@ public class Leaderboard {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public int getCurrentSeason() {
+        return currentSeason == null ? 1 : currentSeason;
+    }
+
+    public void setCurrentSeason(Integer currentSeason) {
+        this.currentSeason = currentSeason;
+    }
+
+    public Long getCurrentSeasonStartedAt() {
+        return currentSeasonStartedAt;
+    }
+
+    public void setCurrentSeasonStartedAt(Long currentSeasonStartedAt) {
+        this.currentSeasonStartedAt = currentSeasonStartedAt;
     }
 }

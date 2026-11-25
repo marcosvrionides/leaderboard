@@ -82,10 +82,33 @@ class EloTests {
 
     @Test
     void boardSummaryUsesTheLeader() {
-        BoardSummary summary = BoardSummary.of("Pool", List.of(
+        Leaderboard pool = new Leaderboard();
+        pool.setName("Pool");
+        BoardSummary summary = BoardSummary.of(pool, List.of(
                 match(1, 100, "A", 3, "B", 1),
                 match(2, 250, "A", 3, "C", 0)));
-        assertEquals(new BoardSummary("Pool", 2, 3, 250L, "A", 1031L), summary);
-        assertEquals(new BoardSummary("Empty", 0, 0, null, null, null), BoardSummary.of("Empty", List.of()));
+        assertEquals(new BoardSummary("Pool", 1, 2, 3, 250L, "A", 1031L), summary);
+
+        Leaderboard empty = new Leaderboard();
+        empty.setName("Empty");
+        assertEquals(new BoardSummary("Empty", 1, 0, 0, null, null, null), BoardSummary.of(empty, List.of()));
+    }
+
+    @Test
+    void boardSummaryOnlyCountsTheCurrentSeason() {
+        Leaderboard pool = new Leaderboard();
+        pool.setName("Pool");
+        pool.setCurrentSeason(2);
+        Match old = match(1, 100, "A", 3, "B", 1);
+        Match current = match(2, 200, "C", 3, "B", 0);
+        current.setSeason(2);
+
+        BoardSummary summary = BoardSummary.of(pool, List.of(old, current));
+        assertEquals(new BoardSummary("Pool", 2, 1, 2, 200L, "C", 1016L), summary);
+
+        Match newSeasonOnly = match(3, 300, "A", 1, "B", 1);
+        pool.setCurrentSeason(3);
+        assertEquals(new BoardSummary("Pool", 3, 0, 0, 300L, null, null),
+                BoardSummary.of(pool, List.of(old, current, newSeasonOnly)));
     }
 }

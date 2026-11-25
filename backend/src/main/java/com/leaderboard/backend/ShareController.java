@@ -55,12 +55,13 @@ public class ShareController {
     @GetMapping(value = "/share/{board}", produces = MediaType.TEXT_HTML_VALUE)
     public ResponseEntity<String> share(@PathVariable String board, @RequestParam(required = false) String from) {
         String origin = frontendOrigin(from);
-        if (!leaderboards.existsById(board)) {
+        Leaderboard leaderboard = leaderboards.findById(board).orElse(null);
+        if (leaderboard == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .contentType(HTML)
                     .body(page("Leaderboards", "Track scores and Elo ratings with your friends.", origin + "/", origin));
         }
-        BoardSummary summary = BoardSummary.of(board, matches.findByLeaderboardName(board));
+        BoardSummary summary = BoardSummary.of(leaderboard, matches.findByLeaderboardName(board));
         String target = origin + "/leaderboard/" + UriUtils.encodePathSegment(board, StandardCharsets.UTF_8);
         return ResponseEntity.ok()
                 .contentType(HTML)
@@ -69,10 +70,13 @@ public class ShareController {
     }
 
     static String describe(BoardSummary s) {
+        String season = s.season() > 1 ? "Season " + s.season() + ": " : "";
         if (s.matchCount() == 0) {
-            return "No games yet. Join in and get on the board!";
+            return s.season() > 1
+                    ? "Season " + s.season() + " has just started. Join in and get on the board!"
+                    : "No games yet. Join in and get on the board!";
         }
-        return String.format("%s leads with %d Elo · %d %s · %d players",
+        return String.format("%s%s leads with %d Elo · %d %s · %d players", season,
                 s.leader(), s.leaderRating(), s.matchCount(), s.matchCount() == 1 ? "match" : "matches",
                 s.playerCount());
     }

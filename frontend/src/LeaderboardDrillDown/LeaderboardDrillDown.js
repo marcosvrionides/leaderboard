@@ -2,6 +2,13 @@ import React, { useCallback, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { computeStandings, computeTrends, newestFirst, plural } from "../stats";
 import { playerPath } from "../paths";
+import {
+	filterBySeason,
+	pastChampions,
+	seasonLabel,
+	useSeasonSelection,
+} from "../seasons";
+import useBoard from "../useBoard";
 import useBoardMatches from "../useBoardMatches";
 import EloInfoModal from "./EloInfoModal";
 import AddMatchModal from "./AddMatchModal";
@@ -12,16 +19,20 @@ import Predictor from "./Predictor";
 import ShareButton from "./ShareButton";
 import ManageBoardModal from "./ManageBoardModal";
 import RenamePlayerModal from "./RenamePlayerModal";
+import { PastChampions, SeasonPicker, StartSeasonModal } from "./Seasons";
 import "./LeaderboardDrillDown.css";
 
 export const LeaderboardDrillDown = () => {
 	const { name } = useParams();
 	const navigate = useNavigate();
 	const {
-		matches,
+		matches: allMatches,
 		error: loadError,
 		reload: fetchMatches,
 	} = useBoardMatches(name);
+	const { board, notFound, reload: reloadBoard } = useBoard(name);
+	const currentSeason = board.currentSeason;
+	const season = useSeasonSelection(currentSeason);
 	const [addOpen, setAddOpen] = useState(false);
 	const [matchToDelete, setMatchToDelete] = useState(null);
 	const [eloInfoOpen, setEloInfoOpen] = useState(false);
@@ -32,6 +43,11 @@ export const LeaderboardDrillDown = () => {
 	const [manageDialog, setManageDialog] = useState(null);
 	const closeManage = useCallback(() => setManageDialog(null), []);
 
+	// Everything below the header is for the selected season.
+	const matches = useMemo(
+		() => filterBySeason(allMatches, season.selected),
+		[allMatches, season.selected],
+	);
 	const { rankings, elo } = useMemo(
 		() => computeStandings(matches),
 		[matches],
@@ -40,10 +56,53 @@ export const LeaderboardDrillDown = () => {
 		() => computeTrends(matches, rankings),
 		[matches, rankings],
 	);
+	// Players from every season, for renaming and name suggestions.
+	const allPlayers = useMemo(
+		() => computeStandings(allMatches).rankings,
+		[allMatches],
+	);
+	const currentSeasonMatches = useMemo(
+		() => filterBySeason(allMatches, currentSeason) || [],
+		[allMatches, currentSeason],
+	);
+	const currentLeader = useMemo(
+		() => computeStandings(currentSeasonMatches).rankings[0],
+		[currentSeasonMatches],
+	);
+	const champions = useMemo(
+		() => pastChampions(allMatches, currentSeason),
+		[allMatches, currentSeason],
+	);
 	const sortedMatches = newestFirst(matches);
-	const knownPlayerNames = rankings
+	const knownPlayerNames = allPlayers
 		.map((r) => r.player)
 		.sort((a, b) => a.localeCompare(b));
+	const hasSeasons = currentSeason > 1;
+	const viewingPast = !season.isCurrent && season.selected !== "all";
+	const toPlayer = (p) => playerPath(name, p) + season.query;
+
+	if (notFound) {
+		return (
+			<div className="drill-container">
+				<div className="drill-header">
+					<div className="drill-header-top">
+						<Link className="drill-back" to="/">
+							← All leaderboards
+						</Link>
+					</div>
+					<h1 className="drill-title">{name}</h1>
+				</div>
+				<div className="empty-state">
+					<div className="empty-icon">🔍</div>
+					<h2 className="empty-title">Leaderboard not found</h2>
+					<p className="empty-subtitle">
+						There's no leaderboard called "{name}". It may have been
+						deleted or renamed.
+					</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="drill-container">
@@ -56,8 +115,8 @@ export const LeaderboardDrillDown = () => {
 						<ShareButton
 							board={name}
 							text={
-								rankings.length > 0
-									? `${rankings[0].player} leads ${name} with ${Math.round(rankings[0].elo)} Elo`
+								currentLeader
+									? `${currentLeader.player} leads ${name} with ${Math.round(currentLeader.elo)} Elo`
 									: `Join ${name} and get on the board`
 							}
 						/>
@@ -71,14 +130,52 @@ export const LeaderboardDrillDown = () => {
 					</div>
 				</div>
 				<h1 className="drill-title">{name}</h1>
-				<p className="drill-subtitle">
-					{matches
-						? `${plural(matches.length, "match", "matches")} played`
-						: loadError
-							? " "
-							: "Loading..."}
-				</p>
+				<div className="drill-subtitle-row">
+					{hasSeasons && (
+						<SeasonPicker
+							currentSeason={currentSeason}
+							selected={season.selected}
+							onSelect={season.select}
+						/>
+					)}
+					<p className="drill-subtitle">
+						{matches
+							? `${plural(matches.length, "match", "matches")} played`
+							: loadError
+								? " "
+								: "Loading..."}
+					</p>
+				</div>
 			</div>
+
+			{viewingPast && (
+				<div className="season-banner">
+					<span>
+						{seasonLabel(season.selected)} is finished. These are
+						its final standings.
+					</span>
+					<button
+						type="button"
+						onClick={() => season.select(currentSeason)}
+					>
+						Back to {seasonLabel(currentSeason)}
+					</button>
+				</div>
+			)}
+			{season.selected === "all" && (
+				<div className="season-banner">
+					<span>
+						All-time ratings run across every season without
+						resetting.
+					</span>
+					<button
+						type="button"
+						onClick={() => season.select(currentSeason)}
+					>
+						Back to {seasonLabel(currentSeason)}
+					</button>
+				</div>
+			)}
 
 			{loadError && (
 				<div className="empty-state">
@@ -91,10 +188,16 @@ export const LeaderboardDrillDown = () => {
 			{!loadError && matches && matches.length === 0 && (
 				<div className="empty-state">
 					<div className="empty-icon">🏆</div>
-					<h2 className="empty-title">No games yet</h2>
+					<h2 className="empty-title">
+						{hasSeasons && season.isCurrent
+							? `${seasonLabel(currentSeason)} has begun`
+							: "No games yet"}
+					</h2>
 					<p className="empty-subtitle">
 						Hit the <span className="empty-highlight">+</span>{" "}
-						button to record your first game.
+						button to record the first game
+						{hasSeasons && season.isCurrent ? " of the season" : ""}
+						.
 					</p>
 				</div>
 			)}
@@ -102,7 +205,9 @@ export const LeaderboardDrillDown = () => {
 			{rankings.length > 0 && (
 				<section className="standings-section">
 					<div className="section-header">
-						<h2 className="section-label">Standings</h2>
+						<h2 className="section-label">
+							{viewingPast ? "Final standings" : "Standings"}
+						</h2>
 						<button
 							type="button"
 							className="info-link"
@@ -114,12 +219,13 @@ export const LeaderboardDrillDown = () => {
 					<Standings
 						board={name}
 						rankings={rankings}
-						trends={trends}
+						trends={viewingPast ? new Map() : trends}
+						query={season.query}
 					/>
 				</section>
 			)}
 
-			{rankings.length >= 2 && (
+			{rankings.length >= 2 && !viewingPast && (
 				<section className="predictor-section">
 					<div className="section-header">
 						<h2 className="section-label">Who'd win?</h2>
@@ -128,6 +234,16 @@ export const LeaderboardDrillDown = () => {
 						</span>
 					</div>
 					<Predictor rankings={rankings} matches={matches} />
+				</section>
+			)}
+
+			{champions.length > 0 && !viewingPast && (
+				<section className="predictor-section">
+					<h2 className="section-label">Past champions</h2>
+					<PastChampions
+						champions={champions}
+						onSelect={season.select}
+					/>
 				</section>
 			)}
 
@@ -142,9 +258,7 @@ export const LeaderboardDrillDown = () => {
 								index={i}
 								eloChanges={elo.changesByMatchId.get(match.id)}
 								onDelete={setMatchToDelete}
-								onPlayerClick={(p) =>
-									navigate(playerPath(name, p))
-								}
+								onPlayerClick={(p) => navigate(toPlayer(p))}
 							/>
 						))}
 					</div>
@@ -158,13 +272,15 @@ export const LeaderboardDrillDown = () => {
 				</div>
 			)}
 
-			<button
-				className="fab"
-				onClick={() => setAddOpen(true)}
-				title="Add Game"
-			>
-				+
-			</button>
+			{!viewingPast && (
+				<button
+					className="fab"
+					onClick={() => setAddOpen(true)}
+					title="Add Game"
+				>
+					+
+				</button>
+			)}
 
 			{eloInfoOpen && <EloInfoModal onClose={closeEloInfo} />}
 
@@ -188,11 +304,21 @@ export const LeaderboardDrillDown = () => {
 							id: "rename",
 							title: "Rename or merge a player",
 							description:
-								rankings.length > 0
+								allPlayers.length > 0
 									? "Fix a typo, or combine two names for the same person."
 									: "Available once games have been played.",
-							disabled: rankings.length === 0,
+							disabled: allPlayers.length === 0,
 							onSelect: () => setManageDialog("rename"),
+						},
+						{
+							id: "season",
+							title: `Start Season ${currentSeason + 1}`,
+							description:
+								currentSeasonMatches.length > 0
+									? `End ${seasonLabel(currentSeason)}, crown its champion and reset ratings to 1000. Past seasons are kept.`
+									: `${seasonLabel(currentSeason)} needs at least one game first.`,
+							disabled: currentSeasonMatches.length === 0,
+							onSelect: () => setManageDialog("season"),
 						},
 					]}
 				/>
@@ -201,10 +327,26 @@ export const LeaderboardDrillDown = () => {
 			{manageDialog === "rename" && (
 				<RenamePlayerModal
 					board={name}
-					players={rankings}
+					players={allPlayers}
 					onClose={closeManage}
 					onRenamed={() => {
 						setManageDialog(null);
+						fetchMatches();
+					}}
+				/>
+			)}
+
+			{manageDialog === "season" && (
+				<StartSeasonModal
+					board={name}
+					currentSeason={currentSeason}
+					leader={currentLeader}
+					onClose={closeManage}
+					onStarted={() => {
+						setManageDialog(null);
+						// Back to "current", which becomes the new season once reloaded.
+						season.select(currentSeason);
+						reloadBoard();
 						fetchMatches();
 					}}
 				/>

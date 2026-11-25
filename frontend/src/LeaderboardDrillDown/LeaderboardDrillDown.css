@@ -98,6 +98,120 @@
 	text-transform: uppercase;
 }
 
+/* ── Seasons ──────────────────────────────────────── */
+.drill-subtitle-row {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px 12px;
+}
+.season-picker select {
+	appearance: none;
+	-webkit-appearance: none;
+	background: var(--accent-a10)
+		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.5'/%3E%3C/svg%3E")
+		no-repeat right 10px center;
+	border: 1px solid var(--accent-a34);
+	border-radius: 999px;
+	color: var(--accent-ink);
+	font-family: "DM Sans", sans-serif;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	padding: 4px 28px 4px 12px;
+	cursor: pointer;
+}
+.season-picker select:focus-visible {
+	outline: 2px solid var(--accent-a53);
+	outline-offset: 2px;
+}
+.season-banner {
+	max-width: 712px;
+	margin: 24px auto 0;
+	padding: 12px 16px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+	background: var(--accent-a10);
+	border: 1px solid var(--accent-a20);
+	border-radius: 10px;
+	font-size: 13px;
+	color: var(--text-primary);
+}
+.season-banner button {
+	background: transparent;
+	border: 1px solid var(--accent-a34);
+	border-radius: 999px;
+	padding: 5px 12px;
+	font-family: "DM Sans", sans-serif;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--accent-ink);
+	cursor: pointer;
+}
+.champions-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.champion-row {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 14px;
+	width: 100%;
+	text-align: left;
+	background: var(--bg-card);
+	border: 1px solid var(--border-subtle);
+	border-radius: 10px;
+	padding: 12px 16px;
+	font-family: "DM Sans", sans-serif;
+	color: var(--text-primary);
+	cursor: pointer;
+	transition: border-color 0.2s;
+}
+.champion-row:hover {
+	border-color: var(--border-strong);
+}
+.champion-trophy {
+	font-size: 20px;
+}
+.champion-text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+.champion-name {
+	font-size: 14px;
+	font-weight: 600;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.champion-meta {
+	font-size: 12px;
+	color: var(--text-muted-1);
+}
+.champion-stats {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 2px;
+	font-size: 11px;
+	color: var(--text-muted-2);
+	white-space: nowrap;
+}
+.champion-stats strong {
+	font-family: "Bebas Neue", sans-serif;
+	font-size: 22px;
+	font-weight: 400;
+	line-height: 1;
+	color: var(--text-primary);
+}
+
 /* ── Sections ─────────────────────────────────────── */
 .standings-section,
 .predictor-section,

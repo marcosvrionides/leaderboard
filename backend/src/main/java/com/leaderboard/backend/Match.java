@@ -1,5 +1,6 @@
 package com.leaderboard.backend;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
@@ -24,6 +25,11 @@ public class Match {
     private String note;
 
     private long timestamp;
+
+    // The board season this match counts towards; set by the server when the
+    // match is saved. Nullable for existing rows, which belong to season 1.
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Integer season;
 
     @ManyToOne
     @JoinColumn(name = "leaderboardName")
@@ -64,6 +70,14 @@ public class Match {
 
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public int getSeason() {
+        return season == null ? 1 : season;
+    }
+
+    public void setSeason(Integer season) {
+        this.season = season;
     }
 
     public Leaderboard getLeaderboard() {

@@ -8,11 +8,17 @@ import "./LeaderboardCard.css";
 // backends don't send these fields, in which case nothing is shown.
 const BoardMeta = ({ data }) => {
 	if (data.matchCount === undefined) return null;
+	const season = data.season > 1 ? `Season ${data.season}` : null;
 	if (!data.matchCount) {
-		return <span className="leaderboard-meta">No games yet</span>;
+		return (
+			<span className="leaderboard-meta">
+				{season ? `${season} just started` : "No games yet"}
+			</span>
+		);
 	}
 	return (
 		<span className="leaderboard-meta">
+			{season && <span>{season}</span>}
 			{data.leader && (
 				<span
 					className="leaderboard-meta-leader"

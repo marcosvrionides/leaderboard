@@ -58,6 +58,7 @@ public class MatchController {
         // from the request body) so the relationship persists correctly.
         match.setLeaderboard(leaderboard);
         match.getParticipants().forEach(p -> p.setMatch(match));
+        match.setSeason(leaderboard.getCurrentSeason());
         // "marcos " joins the existing "Marcos" instead of becoming a new player.
         playerService.applyCanonicalNames(leaderboardName, match.getParticipants());
         return matchRepository.save(match);

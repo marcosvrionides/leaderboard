@@ -6,6 +6,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -27,6 +28,23 @@ class ShareControllerTests {
         matches = mock(MatchRepository.class);
         controller = new ShareController(leaderboards, matches, "https://scores.example, http://localhost:3000/");
         mvc = MockMvcBuilders.standaloneSetup(controller).build();
+    }
+
+    private static Leaderboard board(String name) {
+        Leaderboard board = new Leaderboard();
+        board.setName(name);
+        return board;
+    }
+
+    @Test
+    void laterSeasonsAreNamedInThePreview() {
+        Leaderboard board = board("Pool");
+        board.setCurrentSeason(2);
+        Match old = match("A", 3, "B", 0);
+        Match current = match("B", 3, "A", 1);
+        current.setSeason(2);
+        BoardSummary s = BoardSummary.of(board, List.of(old, current));
+        assertEquals("Season 2: B leads with 1016 Elo · 1 match · 2 players", ShareController.describe(s));
     }
 
     private static Match match(String a, int sa, String b, int sb) {
@@ -52,7 +70,7 @@ class ShareControllerTests {
 
     @Test
     void sharePageDescribesTheBoardAndRedirects() throws Exception {
-        when(leaderboards.existsById("Office Pool")).thenReturn(true);
+        when(leaderboards.findById("Office Pool")).thenReturn(Optional.of(board("Office Pool")));
         when(matches.findByLeaderboardName("Office Pool")).thenReturn(List.of(match("Priya", 3, "Sam", 1)));
 
         mvc.perform(get("/share/{board}", "Office Pool").param("from", "http://localhost:3000"))
@@ -69,7 +87,7 @@ class ShareControllerTests {
     @Test
     void boardNamesAreEscaped() throws Exception {
         String evil = "<script>alert(1)<\\script>\"";
-        when(leaderboards.existsById(evil)).thenReturn(true);
+        when(leaderboards.findById(evil)).thenReturn(Optional.of(board(evil)));
         when(matches.findByLeaderboardName(evil)).thenReturn(List.of());
 
         mvc.perform(get("/share/{board}", evil))
@@ -81,7 +99,7 @@ class ShareControllerTests {
 
     @Test
     void unknownBoardGoesToTheHomePage() throws Exception {
-        when(leaderboards.existsById("Nope")).thenReturn(false);
+        when(leaderboards.findById("Nope")).thenReturn(Optional.empty());
 
         mvc.perform(get("/share/{board}", "Nope"))
                 .andExpect(status().isNotFound())

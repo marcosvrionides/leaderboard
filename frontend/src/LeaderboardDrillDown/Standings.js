@@ -55,7 +55,7 @@ const MiniForm = ({ form }) => (
 	</span>
 );
 
-const Standings = ({ board, rankings, trends }) => {
+const Standings = ({ board, rankings, trends, query = "" }) => {
 	const maxMatchWins = Math.max(0, ...rankings.map((r) => r.matchWins));
 	const maxGameWins = Math.max(0, ...rankings.map((r) => r.gameWins));
 
@@ -67,7 +67,7 @@ const Standings = ({ board, rankings, trends }) => {
 					<Link
 						className="standing-row"
 						key={r.player}
-						to={playerPath(board, r.player)}
+						to={playerPath(board, r.player) + query}
 						title={`See ${r.player}'s profile`}
 						style={{ animationDelay: `${i * 0.07}s` }}
 					>

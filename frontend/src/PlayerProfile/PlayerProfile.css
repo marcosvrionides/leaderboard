@@ -264,6 +264,11 @@
 	color: var(--text-muted-1);
 	cursor: pointer;
 }
+.show-all-button.narrow {
+	width: auto;
+	padding: 10px 18px;
+	margin-top: 20px;
+}
 .show-all-button:hover {
 	color: var(--text-primary);
 	border-color: var(--border-strong);

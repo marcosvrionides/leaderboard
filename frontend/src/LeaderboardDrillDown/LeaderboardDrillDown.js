@@ -4,6 +4,7 @@ import { computeStandings, computeTrends, newestFirst, plural } from "../stats";
 import { boardPath, playerPath } from "../paths";
 import {
 	filterBySeason,
+	matchSeason,
 	pastChampions,
 	seasonLabel,
 	useSeasonSelection,
@@ -22,6 +23,7 @@ import ManageBoardModal from "./ManageBoardModal";
 import RenamePlayerModal from "./RenamePlayerModal";
 import { PastChampions, SeasonPicker, StartSeasonModal } from "./Seasons";
 import VisibilityModal from "./VisibilityModal";
+import DeleteBoardModal from "./DeleteBoardModal";
 import CreateTournamentModal from "../Tournament/CreateTournamentModal";
 import TournamentList from "../Tournament/TournamentList";
 import "../Tournament/Tournament.css";
@@ -392,6 +394,14 @@ export const LeaderboardDrillDown = () => {
 							disabled: currentSeasonMatches.length === 0,
 							onSelect: () => setManageDialog("season"),
 						},
+						{
+							id: "delete",
+							title: "Delete leaderboard",
+							description:
+								"Permanently delete this board with all its games and tournaments.",
+							danger: true,
+							onSelect: () => setManageDialog("delete"),
+						},
 					]}
 				/>
 			)}
@@ -435,6 +445,22 @@ export const LeaderboardDrillDown = () => {
 					onSaved={() => {
 						setManageDialog(null);
 						reloadBoard();
+					}}
+				/>
+			)}
+
+			{manageDialog === "delete" && (
+				<DeleteBoardModal
+					board={name}
+					matchCount={(allMatches || []).length}
+					seasonCount={
+						new Set((allMatches || []).map(matchSeason)).size
+					}
+					tournamentCount={tournaments.length}
+					onClose={closeManage}
+					onDeleted={() => {
+						if (starred) toggleFavourite(name);
+						navigate("/", { replace: true });
 					}}
 				/>
 			)}

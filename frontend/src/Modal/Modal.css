@@ -282,6 +282,12 @@
 	color: var(--text-muted-1);
 	line-height: 1.5;
 }
+.manage-action.danger .manage-action-title {
+	color: var(--error-text);
+}
+.manage-action.danger:hover:not(:disabled) {
+	border-color: var(--error-border);
+}
 .manage-action-chevron {
 	font-size: 22px;
 	color: var(--text-muted-2);

@@ -21,13 +21,16 @@ public class LeaderboardController {
     private final MatchRepository matchRepository;
     private final PasswordEncoder passwordEncoder;
     private final BoardAccess boardAccess;
+    private final BoardDeletionService boardDeletion;
 
     public LeaderboardController(LeaderboardRepository repository, MatchRepository matchRepository,
-                                 PasswordEncoder passwordEncoder, BoardAccess boardAccess) {
+                                 PasswordEncoder passwordEncoder, BoardAccess boardAccess,
+                                 BoardDeletionService boardDeletion) {
         this.repository = repository;
         this.matchRepository = matchRepository;
         this.passwordEncoder = passwordEncoder;
         this.boardAccess = boardAccess;
+        this.boardDeletion = boardDeletion;
     }
 
     /**
@@ -96,18 +99,12 @@ public class LeaderboardController {
         return repository.save(leaderboard);
     }
 
+    /** Permanently deletes a board with all of its games (every season) and tournaments. */
     @DeleteMapping("/{name}")
     public ResponseEntity<Void> delete(
             @PathVariable String name,
             @RequestHeader("X-Leaderboard-Password") String password) {
-        Leaderboard leaderboard = repository.findById(name)
-                .orElseThrow(() -> new LeaderboardNotFoundException(name));
-
-        if (!passwordEncoder.matches(password, leaderboard.getPassword())) {
-            throw new InvalidLeaderboardPasswordException();
-        }
-
-        repository.delete(leaderboard);
+        boardDeletion.delete(boardAccess.requireWithPassword(name, password));
         return ResponseEntity.noContent().build();
     }
 }

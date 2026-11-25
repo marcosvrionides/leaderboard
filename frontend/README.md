@@ -6,6 +6,7 @@ This frontend is a React app for a leaderboard service. It connects to the backe
 
 - Lists all available leaderboards, each with its current leader, number of matches and when it was last played.
 - Lets users search leaderboards by name.
+- Lets board owners delete a leaderboard from **Manage → Delete leaderboard** (password, plus typing the board's name). This removes all its games, in every season, and its tournaments.
 - Lets users favourite leaderboards for quick access (from the home page or the ☆ on a board).
 - Lets users create a new leaderboard with a secure password, optionally **unlisted**: hidden from the home page and search, but viewable by anyone with the link. Visibility can be changed later from **Manage**.
 - Lets users open a leaderboard to view standings and match history.

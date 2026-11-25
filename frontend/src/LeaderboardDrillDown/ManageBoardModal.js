@@ -10,7 +10,7 @@ const ManageBoardModal = ({ actions, onClose }) => (
 				<button
 					key={a.id}
 					type="button"
-					className="manage-action"
+					className={`manage-action${a.danger ? " danger" : ""}`}
 					onClick={a.onSelect}
 					disabled={a.disabled}
 				>

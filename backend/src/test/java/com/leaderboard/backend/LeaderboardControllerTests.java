@@ -13,6 +13,7 @@ import java.util.Optional;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -21,6 +22,7 @@ class LeaderboardControllerTests {
 
     private final PasswordEncoder encoder = new BCryptPasswordEncoder();
     private LeaderboardRepository boards;
+    private BoardDeletionService deletion;
     private MockMvc mvc;
     private Leaderboard secret;
 
@@ -41,8 +43,9 @@ class LeaderboardControllerTests {
         when(boards.findById("Secret")).thenReturn(Optional.of(secret));
         when(boards.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(matches.findAllWithParticipants()).thenReturn(List.of());
+        deletion = mock(BoardDeletionService.class);
         LeaderboardController controller = new LeaderboardController(
-                boards, matches, encoder, new BoardAccess(boards, encoder));
+                boards, matches, encoder, new BoardAccess(boards, encoder), deletion);
         mvc = MockMvcBuilders.standaloneSetup(controller).setControllerAdvice(new ApiExceptionHandler()).build();
     }
 
@@ -84,5 +87,22 @@ class LeaderboardControllerTests {
                         .contentType("application/json").content("{\"unlisted\":false}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.unlisted", is(false)));
+    }
+
+    @Test
+    void deletingABoardNeedsThePassword() throws Exception {
+        mvc.perform(delete("/api/leaderboards/Secret").header("X-Leaderboard-Password", "wrong"))
+                .andExpect(status().isForbidden());
+        verify(deletion, never()).delete(any());
+
+        mvc.perform(delete("/api/leaderboards/Secret").header("X-Leaderboard-Password", "pass1234"))
+                .andExpect(status().isNoContent());
+        verify(deletion).delete(secret);
+    }
+
+    @Test
+    void deletingAnUnknownBoardIsNotFound() throws Exception {
+        mvc.perform(delete("/api/leaderboards/Nope").header("X-Leaderboard-Password", "pass1234"))
+                .andExpect(status().isNotFound());
     }
 }

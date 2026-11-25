@@ -26,7 +26,9 @@ test("equal players: winner gains and loser loses half of K", () => {
 });
 
 test("a draw between equal players changes nothing", () => {
-	const { ratings } = computeEloRatings([match(1, 100, { Alice: 2, Bob: 2 })]);
+	const { ratings } = computeEloRatings([
+		match(1, 100, { Alice: 2, Bob: 2 }),
+	]);
 
 	expect(ratings.get("Alice")).toBeCloseTo(STARTING_RATING);
 	expect(ratings.get("Bob")).toBeCloseTo(STARTING_RATING);

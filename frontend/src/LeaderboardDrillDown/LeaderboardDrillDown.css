@@ -272,12 +272,36 @@
 	border-color: var(--border-strong);
 }
 
+.match-card-top {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 10px;
+}
+
 .match-date {
 	font-size: 11px;
 	color: var(--text-muted-2);
 	letter-spacing: 0.05em;
 	text-transform: uppercase;
-	margin-bottom: 10px;
+}
+
+.match-delete {
+	background: transparent;
+	border: none;
+	padding: 2px 0;
+	font-family: "DM Sans", sans-serif;
+	font-size: 11px;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: var(--text-muted-3);
+	cursor: pointer;
+	transition: color 0.2s;
+}
+.match-delete:hover,
+.match-delete:focus-visible {
+	color: var(--error-text);
 }
 
 .match-participants {
@@ -459,73 +483,7 @@
 	transform: scale(0.96);
 }
 
-/* ── Modal ────────────────────────────────────────── */
-.modal-backdrop {
-	position: fixed;
-	inset: 0;
-	background: var(--modal-bg);
-	backdrop-filter: blur(4px);
-	z-index: 200;
-	display: flex;
-	align-items: flex-end;
-	justify-content: center;
-	padding: 0;
-}
-
-.modal {
-	background: var(--bg-card);
-	border: 1px solid var(--border-medium);
-	border-radius: 16px 16px 0 0;
-	width: 100%;
-	max-width: 100%;
-	padding: 24px 20px 36px;
-	display: flex;
-	flex-direction: column;
-	gap: 20px;
-	max-height: 90vh;
-	overflow-y: auto;
-}
-
-.modal-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-}
-
-.modal-title {
-	font-family: "Bebas Neue", sans-serif;
-	font-size: 30px;
-	letter-spacing: 0.06em;
-	color: var(--text-primary);
-	margin: 0;
-	line-height: 1;
-}
-
-.modal-close {
-	background: transparent;
-	border: none;
-	color: var(--text-muted-2);
-	font-size: 18px;
-	cursor: pointer;
-	padding: 4px;
-	line-height: 1;
-	transition: color 0.2s;
-	min-width: 36px;
-	min-height: 36px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-.modal-close:hover {
-	color: var(--text-primary);
-}
-
-.modal-body {
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-}
-
+/* ── Add game form ────────────────────────────────── */
 .modal-participants-list {
 	display: flex;
 	flex-direction: column;
@@ -558,7 +516,9 @@
 	flex-shrink: 0;
 	font-size: 14px;
 	cursor: pointer;
-	transition: color 0.2s, border-color 0.2s;
+	transition:
+		color 0.2s,
+		border-color 0.2s;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -578,82 +538,13 @@
 	font-size: 13px;
 	font-weight: 500;
 	cursor: pointer;
-	transition: color 0.2s, border-color 0.2s;
+	transition:
+		color 0.2s,
+		border-color 0.2s;
 }
 .add-participant-button:hover {
 	color: var(--text-primary);
 	border-color: var(--border-strong);
-}
-
-.modal .form-field {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-}
-.modal .form-field label {
-	font-size: 11px;
-	letter-spacing: 0.18em;
-	text-transform: uppercase;
-	color: var(--text-muted-2);
-	font-weight: 500;
-}
-.modal .form-field input {
-	background: var(--bg-input);
-	border: 1px solid var(--border-medium);
-	border-radius: 8px;
-	color: var(--text-primary);
-	font-family: "DM Sans", sans-serif;
-	font-size: 16px;
-	padding: 12px 12px;
-	outline: none;
-	transition: border-color 0.2s;
-	width: 100%;
-	box-sizing: border-box;
-	-webkit-appearance: none;
-}
-.modal .form-field input:focus {
-	border-color: var(--accent-a34);
-}
-.modal .form-field input::placeholder {
-	color: var(--border-strong);
-}
-
-.modal-error {
-	background: var(--error-bg);
-	border: 1px solid var(--error-border);
-	color: var(--error-text);
-	font-size: 13px;
-	padding: 12px 14px;
-	border-radius: 8px;
-	margin-top: 16px;
-}
-
-.modal-submit {
-	background: var(--accent);
-	color: var(--accent-text);
-	border: none;
-	padding: 16px 24px;
-	font-family: "DM Sans", sans-serif;
-	font-size: 13px;
-	font-weight: 600;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-	border-radius: 8px;
-	cursor: pointer;
-	transition:
-		background 0.2s,
-		transform 0.1s;
-	width: 100%;
-}
-.modal-submit:hover {
-	background: var(--accent-hover);
-}
-.modal-submit:active {
-	transform: scale(0.98);
-}
-.modal-submit:disabled {
-	opacity: 0.5;
-	cursor: not-allowed;
 }
 
 /* ── Elo explainer ────────────────────────────────── */
@@ -770,18 +661,5 @@
 	}
 	.participant-name {
 		font-size: 13px;
-	}
-}
-
-/* ── Tablet / larger (≥ 601px) ───────────────────── */
-@media (min-width: 601px) {
-	.modal-backdrop {
-		align-items: center;
-		padding: 24px;
-	}
-	.modal {
-		border-radius: 14px;
-		max-width: 480px;
-		padding: 28px;
 	}
 }

@@ -1,51 +1,28 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { computeEloRatings, formatEloChange, STARTING_RATING } from "../elo";
+import { STARTING_RATING } from "../elo";
+import { apiFetch, seg } from "../api";
+import { computeStandings, newestFirst } from "../stats";
 import EloInfoModal from "./EloInfoModal";
+import AddMatchModal from "./AddMatchModal";
+import DeleteMatchModal from "./DeleteMatchModal";
+import MatchCard from "./MatchCard";
 import "./LeaderboardDrillDown.css";
-
-// Shows a match's rating change as "+16", "−16" or "±0".
-const EloChange = ({ change }) => {
-	if (change === undefined) return null;
-	const rounded = Math.round(change);
-	const direction = rounded > 0 ? "up" : rounded < 0 ? "down" : "";
-	return (
-		<span
-			className={`elo-change ${direction}`}
-			title="Elo rating change from this match"
-		>
-			{formatEloChange(change)}
-		</span>
-	);
-};
-
-const emptyParticipant = () => ({ name: "", gamesWon: "" });
-const emptyForm = () => ({
-	participants: [emptyParticipant(), emptyParticipant()],
-	note: "",
-	password: "",
-});
 
 export const LeaderboardDrillDown = () => {
 	const { name } = useParams();
 	const [leaderboardData, setLeaderboardData] = useState(null);
 	const [loadError, setLoadError] = useState(null);
-	const [modalOpen, setModalOpen] = useState(false);
-	const [form, setForm] = useState(emptyForm());
-	const [submitting, setSubmitting] = useState(false);
-	const [submitError, setSubmitError] = useState(null);
+	const [addOpen, setAddOpen] = useState(false);
+	const [matchToDelete, setMatchToDelete] = useState(null);
 	const [eloInfoOpen, setEloInfoOpen] = useState(false);
 	const closeEloInfo = useCallback(() => setEloInfoOpen(false), []);
+	const closeAdd = useCallback(() => setAddOpen(false), []);
+	const closeDelete = useCallback(() => setMatchToDelete(null), []);
 
-	const fetchMatches = () => {
+	const fetchMatches = useCallback(() => {
 		setLoadError(null);
-		fetch(
-			`${process.env.REACT_APP_API_URL}/api/matches/leaderboard/${name}`,
-		)
-			.then((res) => {
-				if (!res.ok) throw new Error(`Request failed (${res.status})`);
-				return res.json();
-			})
+		apiFetch(`/api/matches/leaderboard/${seg(name)}`)
 			.then((data) => setLeaderboardData(data))
 			.catch((err) => {
 				console.error(err);
@@ -53,172 +30,19 @@ export const LeaderboardDrillDown = () => {
 					"Couldn't load this leaderboard. Please try again.",
 				);
 			});
-	};
+	}, [name]);
 
 	useEffect(() => {
 		fetchMatches();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [name]);
+	}, [fetchMatches]);
 
-	const handleParticipantChange = (index, field, value) => {
-		setForm((prev) => {
-			const participants = [...prev.participants];
-			participants[index] = { ...participants[index], [field]: value };
-			return { ...prev, participants };
-		});
-	};
-
-	const handleAddParticipant = () => {
-		setForm((prev) => ({
-			...prev,
-			participants: [...prev.participants, emptyParticipant()],
-		}));
-	};
-
-	const handleRemoveParticipant = (index) => {
-		setForm((prev) => ({
-			...prev,
-			participants: prev.participants.filter((_, i) => i !== index),
-		}));
-	};
-
-	const handleFieldChange = (e) => {
-		setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-	};
-
-	const handleSubmit = () => {
-		const trimmedParticipants = form.participants.map((p) => ({
-			name: p.name.trim(),
-			gamesWon: p.gamesWon,
-		}));
-
-		const hasEmptyField = trimmedParticipants.some(
-			(p) => !p.name || p.gamesWon === "",
-		);
-
-		if (
-			trimmedParticipants.length < 2 ||
-			hasEmptyField ||
-			!form.password
-		) {
-			setSubmitError(
-				"All player names, scores, and the leaderboard password are required.",
-			);
-			return;
-		}
-
-		setSubmitError(null);
-		setSubmitting(true);
-
-		fetch(`${process.env.REACT_APP_API_URL}/api/matches`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"X-Leaderboard-Password": form.password,
-			},
-			body: JSON.stringify({
-				participants: trimmedParticipants.map((p) => ({
-					playerName: p.name,
-					gamesWon: parseInt(p.gamesWon, 10),
-				})),
-				note: form.note.trim() || null,
-				timestamp: Date.now(),
-				leaderboard: { name },
-			}),
-		})
-			.then(async (res) => {
-				if (res.status === 403)
-					throw new Error("Incorrect leaderboard password.");
-				if (res.status === 404)
-					throw new Error("This leaderboard no longer exists.");
-				if (!res.ok)
-					throw new Error(
-						"Couldn't save the game. Please try again.",
-					);
-				return res.json();
-			})
-			.then(() => {
-				setModalOpen(false);
-				setForm(emptyForm());
-				fetchMatches();
-			})
-			.catch((err) => {
-				console.error(err);
-				setSubmitError(err.message);
-			})
-			.finally(() => setSubmitting(false));
-	};
-
-	const handleCloseModal = () => {
-		setModalOpen(false);
-		setSubmitError(null);
-		setForm(emptyForm());
-	};
-
-	// A match win is only credited when there's a single, outright top score.
-	// A tie for the top score means nobody gets credited for that match.
-	const getMatchWinnerNames = (participants) => {
-		const maxScore = Math.max(...participants.map((p) => p.gamesWon));
-		const topScorers = participants.filter((p) => p.gamesWon === maxScore);
-		return topScorers.length === 1 ? [topScorers[0].playerName] : [];
-	};
-
-	const playerStats = {};
-	if (leaderboardData) {
-		leaderboardData.forEach((match) => {
-			const winnerNames = getMatchWinnerNames(match.participants);
-			match.participants.forEach((p) => {
-				if (!playerStats[p.playerName]) {
-					playerStats[p.playerName] = { matchWins: 0, gameWins: 0 };
-				}
-				playerStats[p.playerName].gameWins += p.gamesWon;
-				if (winnerNames.includes(p.playerName)) {
-					playerStats[p.playerName].matchWins += 1;
-				}
-			});
-		});
-	}
-
-	const { ratings: eloRatings, changesByMatchId: eloChangesByMatchId } =
-		computeEloRatings(leaderboardData);
-
-	// Ranked by Elo, which weighs who you beat rather than how often you
-	// play. Match wins break ties (e.g. two players who've only drawn).
-	const rankings = Object.entries(playerStats)
-		.map(([player, stats]) => ({
-			player,
-			...stats,
-			elo: eloRatings.get(player) ?? STARTING_RATING,
-		}))
-		.sort(
-			(a, b) =>
-				Math.round(b.elo) - Math.round(a.elo) ||
-				b.matchWins - a.matchWins,
-		);
-
+	const { rankings, elo } = computeStandings(leaderboardData);
 	const maxMatchWins = Math.max(0, ...rankings.map((r) => r.matchWins));
 	const maxGameWins = Math.max(0, ...rankings.map((r) => r.gameWins));
-
-	const sortedMatches = leaderboardData
-		? [...leaderboardData].sort((a, b) => b.timestamp - a.timestamp)
-		: [];
-
-	const knownPlayerNames = leaderboardData
-		? Array.from(
-				new Set(
-					leaderboardData.flatMap((m) =>
-						m.participants.map((p) => p.playerName),
-					),
-				),
-			).sort((a, b) => a.localeCompare(b))
-		: [];
-
-	const formatDate = (ts) =>
-		new Date(ts).toLocaleDateString("en-GB", {
-			day: "numeric",
-			month: "short",
-			year: "numeric",
-		});
+	const sortedMatches = newestFirst(leaderboardData);
+	const knownPlayerNames = rankings
+		.map((r) => r.player)
+		.sort((a, b) => a.localeCompare(b));
 
 	return (
 		<div className="drill-container">
@@ -332,60 +156,19 @@ export const LeaderboardDrillDown = () => {
 				</section>
 			)}
 
-			{leaderboardData && leaderboardData.length > 0 && (
+			{sortedMatches.length > 0 && (
 				<section className="matches-section">
 					<h2 className="section-label">Match History</h2>
 					<div className="matches-list">
-						{sortedMatches.map((match, i) => {
-							const winnerNames = getMatchWinnerNames(
-								match.participants,
-							);
-							const sortedParticipants = [
-								...match.participants,
-							].sort((a, b) => b.gamesWon - a.gamesWon);
-							const eloChanges = eloChangesByMatchId.get(
-								match.id,
-							);
-
-							return (
-								<div
-									className="match-card"
-									key={match.id}
-									style={{ animationDelay: `${i * 0.06}s` }}
-								>
-									<div className="match-date">
-										{formatDate(match.timestamp)}
-									</div>
-									<div className="match-participants">
-										{sortedParticipants.map((p, pi) => (
-											<div
-												className={`match-participant-row ${winnerNames.includes(p.playerName) ? "winner" : ""}`}
-												key={pi}
-											>
-												<span className="participant-name">
-													{p.playerName}
-												</span>
-												<span className="participant-result">
-													<EloChange
-														change={eloChanges?.get(
-															p.playerName,
-														)}
-													/>
-													<span className="participant-score">
-														{p.gamesWon}
-													</span>
-												</span>
-											</div>
-										))}
-									</div>
-									{match.note && (
-										<div className="match-note">
-											{match.note}
-										</div>
-									)}
-								</div>
-							);
-						})}
+						{sortedMatches.map((match, i) => (
+							<MatchCard
+								key={match.id}
+								match={match}
+								index={i}
+								eloChanges={elo.changesByMatchId.get(match.id)}
+								onDelete={setMatchToDelete}
+							/>
+						))}
 					</div>
 				</section>
 			)}
@@ -399,7 +182,7 @@ export const LeaderboardDrillDown = () => {
 
 			<button
 				className="fab"
-				onClick={() => setModalOpen(true)}
+				onClick={() => setAddOpen(true)}
 				title="Add Game"
 			>
 				+
@@ -407,135 +190,28 @@ export const LeaderboardDrillDown = () => {
 
 			{eloInfoOpen && <EloInfoModal onClose={closeEloInfo} />}
 
-			{modalOpen && (
-				<div className="modal-backdrop" onClick={handleCloseModal}>
-					<div className="modal" onClick={(e) => e.stopPropagation()}>
-						<div className="modal-header">
-							<h2 className="modal-title">Add Game</h2>
-							<button
-								className="modal-close"
-								onClick={handleCloseModal}
-							>
-								✕
-							</button>
-						</div>
+			{addOpen && (
+				<AddMatchModal
+					board={name}
+					knownPlayerNames={knownPlayerNames}
+					onClose={closeAdd}
+					onSaved={() => {
+						setAddOpen(false);
+						fetchMatches();
+					}}
+				/>
+			)}
 
-						<div className="modal-body">
-							<div className="modal-participants-list">
-								{form.participants.map((p, index) => (
-									<div
-										className="modal-participant-row"
-										key={index}
-									>
-										<div className="form-field participant-name-field">
-											<label>
-												Player {index + 1}
-											</label>
-											<input
-												type="text"
-												placeholder="Name"
-												autoComplete="off"
-												list="known-player-names"
-												value={p.name}
-												onChange={(e) =>
-													handleParticipantChange(
-														index,
-														"name",
-														e.target.value,
-													)
-												}
-											/>
-										</div>
-										<div className="form-field participant-score-field">
-											<label>Games Won</label>
-											<input
-												type="number"
-												placeholder="0"
-												min="0"
-												value={p.gamesWon}
-												onChange={(e) =>
-													handleParticipantChange(
-														index,
-														"gamesWon",
-														e.target.value,
-													)
-												}
-											/>
-										</div>
-										{form.participants.length > 2 && (
-											<button
-												type="button"
-												className="remove-participant-button"
-												onClick={() =>
-													handleRemoveParticipant(
-														index,
-													)
-												}
-												title="Remove player"
-												aria-label="Remove player"
-											>
-												✕
-											</button>
-										)}
-									</div>
-								))}
-							</div>
-
-							<button
-								type="button"
-								className="add-participant-button"
-								onClick={handleAddParticipant}
-							>
-								+ Add Player
-							</button>
-
-							<datalist id="known-player-names">
-								{knownPlayerNames.map((playerName) => (
-									<option
-										key={playerName}
-										value={playerName}
-									/>
-								))}
-							</datalist>
-
-							<div className="form-field">
-								<label>Note (optional)</label>
-								<input
-									type="text"
-									name="note"
-									placeholder="e.g. Final of the season"
-									autoComplete="off"
-									value={form.note}
-									onChange={handleFieldChange}
-								/>
-							</div>
-
-							<div className="form-field">
-								<label>Leaderboard Password</label>
-								<input
-									type="password"
-									name="password"
-									placeholder="Enter the leaderboard password"
-									autoComplete="current-password"
-									value={form.password}
-									onChange={handleFieldChange}
-								/>
-							</div>
-
-							{submitError && (
-								<div className="modal-error">{submitError}</div>
-							)}
-						</div>
-
-						<button
-							className="modal-submit"
-							onClick={handleSubmit}
-							disabled={submitting}
-						>
-							{submitting ? "Saving…" : "Save Game"}
-						</button>
-					</div>
-				</div>
+			{matchToDelete && (
+				<DeleteMatchModal
+					board={name}
+					match={matchToDelete}
+					onClose={closeDelete}
+					onDeleted={() => {
+						setMatchToDelete(null);
+						fetchMatches();
+					}}
+				/>
 			)}
 		</div>
 	);

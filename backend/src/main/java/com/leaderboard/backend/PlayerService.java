@@ -5,8 +5,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -29,24 +27,7 @@ public class PlayerService {
      * same player, the most used one wins (ties go to the most recent).
      */
     public Map<String, String> canonicalNames(String board) {
-        record Usage(int count, long lastPlayed) {
-        }
-        Map<String, Map<String, Usage>> spellingsByKey = new HashMap<>();
-        for (MatchParticipant p : participants.findByBoard(board)) {
-            String spelling = PlayerNames.clean(p.getPlayerName());
-            long ts = p.getMatch().getTimestamp();
-            spellingsByKey
-                    .computeIfAbsent(PlayerNames.key(spelling), k -> new HashMap<>())
-                    .merge(spelling, new Usage(1, ts),
-                            (a, b) -> new Usage(a.count() + b.count(), Math.max(a.lastPlayed(), b.lastPlayed())));
-        }
-        Map<String, String> canonical = new HashMap<>();
-        spellingsByKey.forEach((key, spellings) -> canonical.put(key, spellings.entrySet().stream()
-                .max(Comparator.<Map.Entry<String, Usage>>comparingInt(e -> e.getValue().count())
-                        .thenComparingLong(e -> e.getValue().lastPlayed()))
-                .orElseThrow()
-                .getKey()));
-        return canonical;
+        return PlayerNames.canonicalSpellings(participants.findByBoard(board));
     }
 
     /**

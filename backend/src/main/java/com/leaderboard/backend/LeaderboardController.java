@@ -8,23 +8,32 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/leaderboards")
 public class LeaderboardController {
 
     private final LeaderboardRepository repository;
+    private final MatchRepository matchRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public LeaderboardController(LeaderboardRepository repository, PasswordEncoder passwordEncoder) {
+    public LeaderboardController(LeaderboardRepository repository, MatchRepository matchRepository,
+                                 PasswordEncoder passwordEncoder) {
         this.repository = repository;
+        this.matchRepository = matchRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
+    /** Every board with its match count, last game and current leader (no passwords). */
     @GetMapping
-    public List<Leaderboard> getAll() {
-        // Passwords are excluded automatically via @JsonProperty(WRITE_ONLY) on Leaderboard.password
-        return repository.findAll();
+    public List<BoardSummary> getAll() {
+        Map<String, List<Match>> matchesByBoard = matchRepository.findAllWithParticipants().stream()
+                .collect(Collectors.groupingBy(m -> m.getLeaderboard().getName()));
+        return repository.findAll().stream()
+                .map(board -> BoardSummary.of(board.getName(), matchesByBoard.getOrDefault(board.getName(), List.of())))
+                .toList();
     }
 
     @PostMapping

@@ -4,7 +4,7 @@ This frontend is a React app for a leaderboard service. It connects to the backe
 
 ## What the app does
 
-- Lists all available leaderboards.
+- Lists all available leaderboards, each with its current leader, number of matches and when it was last played.
 - Lets users search leaderboards by name.
 - Lets users favourite leaderboards for quick access.
 - Lets users create a new leaderboard with a secure password.

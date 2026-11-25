@@ -265,3 +265,16 @@ export const computeTrends = (matches, rankings, now = Date.now()) => {
 	});
 	return trends;
 };
+
+// "today", "yesterday", "3 days ago", "2 weeks ago", "5 months ago", or a date.
+export const timeAgo = (ts, now = Date.now()) => {
+	const day = 24 * 60 * 60 * 1000;
+	const startOfToday = new Date(now).setHours(0, 0, 0, 0);
+	const days = Math.ceil((startOfToday - ts) / day);
+	if (days <= 0) return "today";
+	if (days === 1) return "yesterday";
+	if (days < 7) return `${days} days ago`;
+	if (days < 30) return `${plural(Math.floor(days / 7), "week")} ago`;
+	if (days < 365) return `${plural(Math.floor(days / 30), "month")} ago`;
+	return formatDate(ts);
+};

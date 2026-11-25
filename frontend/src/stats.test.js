@@ -8,6 +8,7 @@ import {
 	normaliseMatches,
 	playerKey,
 	plural,
+	timeAgo,
 } from "./stats";
 
 const match = (id, timestamp, scores) => ({
@@ -172,4 +173,15 @@ describe("standings trends", () => {
 		const t = computeTrends(recent, computeStandings(recent).rankings, now);
 		expect(t.get("A").movement).toBeNull();
 	});
+});
+
+test("timeAgo", () => {
+	const now = new Date(2026, 10, 25, 15, 0).getTime();
+	const at = (d, h = 12) => new Date(2026, 10, 25 - d, h, 0).getTime();
+	expect(timeAgo(at(0, 9), now)).toBe("today");
+	expect(timeAgo(at(1, 23), now)).toBe("yesterday");
+	expect(timeAgo(at(3), now)).toBe("3 days ago");
+	expect(timeAgo(at(8), now)).toBe("1 week ago");
+	expect(timeAgo(at(20), now)).toBe("2 weeks ago");
+	expect(timeAgo(at(65), now)).toBe("2 months ago");
 });

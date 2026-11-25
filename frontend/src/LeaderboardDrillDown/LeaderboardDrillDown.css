@@ -74,6 +74,32 @@
 	font-weight: 500;
 }
 
+.section-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 12px;
+	margin: 0 0 16px;
+}
+.section-header .section-label {
+	margin: 0;
+}
+
+.info-link {
+	background: transparent;
+	border: none;
+	padding: 4px 0;
+	font-family: "DM Sans", sans-serif;
+	font-size: 12px;
+	color: var(--text-muted-1);
+	cursor: pointer;
+	letter-spacing: 0.02em;
+	transition: color 0.2s;
+}
+.info-link:hover {
+	color: var(--accent-ink);
+}
+
 /* ── Standings ────────────────────────────────────── */
 .standings-list {
 	display: flex;
@@ -628,6 +654,98 @@
 .modal-submit:disabled {
 	opacity: 0.5;
 	cursor: not-allowed;
+}
+
+/* ── Elo explainer ────────────────────────────────── */
+.elo-info {
+	gap: 22px;
+}
+.elo-info section {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+.elo-info-lead {
+	margin: 0;
+	font-size: 15px;
+	line-height: 1.6;
+	color: var(--text-primary);
+}
+.elo-info-heading {
+	margin: 0;
+	font-size: 11px;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: var(--text-muted-2);
+	font-weight: 500;
+}
+.elo-info-text,
+.elo-info-list {
+	margin: 0;
+	font-size: 14px;
+	line-height: 1.6;
+	color: var(--text-muted-1);
+}
+.elo-info-list {
+	padding-left: 18px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+.elo-info strong {
+	color: var(--text-primary);
+	font-weight: 600;
+}
+.elo-info-example {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 8px;
+}
+.elo-info-example > div {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+	background: var(--bg-input);
+	border: 1px solid var(--border-subtle);
+	border-radius: 8px;
+	padding: 10px 6px;
+	font-size: 12px;
+	color: var(--text-muted-1);
+}
+.elo-info-example .elo-change {
+	min-width: 0;
+	text-align: center;
+	font-family: "Bebas Neue", sans-serif;
+	font-size: 26px;
+	font-weight: 400;
+	line-height: 1;
+}
+.elo-info-formula {
+	background: var(--bg-input);
+	border: 1px solid var(--border-subtle);
+	border-radius: 8px;
+	padding: 12px 14px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	font-size: 14px;
+	color: var(--text-primary);
+	font-variant-numeric: tabular-nums;
+}
+.elo-info-formula sup {
+	font-size: 10px;
+}
+.elo-info .nowrap {
+	white-space: nowrap;
+}
+.elo-info-footnote {
+	margin: 0;
+	font-size: 12px;
+	line-height: 1.6;
+	color: var(--text-muted-2);
+	border-top: 1px solid var(--border-subtle);
+	padding-top: 14px;
 }
 
 /* ── Mobile overrides (≤ 600px) ──────────────────── */

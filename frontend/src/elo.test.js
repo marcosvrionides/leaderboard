@@ -1,6 +1,7 @@
 import {
 	computeEloRatings,
 	expectedScore,
+	formatEloChange,
 	K_FACTOR,
 	STARTING_RATING,
 } from "./elo";
@@ -116,4 +117,11 @@ test("expectedScore is symmetric and 0.5 for equal ratings", () => {
 test("handles no matches", () => {
 	expect(computeEloRatings([]).ratings.size).toBe(0);
 	expect(computeEloRatings(null).ratings.size).toBe(0);
+});
+
+test("formatEloChange uses a sign and rounds", () => {
+	expect(formatEloChange(15.6)).toBe("+16");
+	expect(formatEloChange(-11.52)).toBe("−12");
+	expect(formatEloChange(0.3)).toBe("±0");
+	expect(formatEloChange(-0.4)).toBe("±0");
 });

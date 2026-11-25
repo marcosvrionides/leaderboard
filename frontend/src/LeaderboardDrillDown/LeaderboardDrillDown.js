@@ -1,25 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { computeEloRatings, STARTING_RATING } from "../elo";
+import { computeEloRatings, formatEloChange, STARTING_RATING } from "../elo";
+import EloInfoModal from "./EloInfoModal";
 import "./LeaderboardDrillDown.css";
 
-// Shows a match's rating change as "+16", "−16" (true minus sign) or "±0".
+// Shows a match's rating change as "+16", "−16" or "±0".
 const EloChange = ({ change }) => {
 	if (change === undefined) return null;
 	const rounded = Math.round(change);
 	const direction = rounded > 0 ? "up" : rounded < 0 ? "down" : "";
-	const text =
-		rounded === 0
-			? "±0"
-			: rounded > 0
-				? `+${rounded}`
-				: `−${Math.abs(rounded)}`;
 	return (
 		<span
 			className={`elo-change ${direction}`}
 			title="Elo rating change from this match"
 		>
-			{text}
+			{formatEloChange(change)}
 		</span>
 	);
 };
@@ -39,6 +34,8 @@ export const LeaderboardDrillDown = () => {
 	const [form, setForm] = useState(emptyForm());
 	const [submitting, setSubmitting] = useState(false);
 	const [submitError, setSubmitError] = useState(null);
+	const [eloInfoOpen, setEloInfoOpen] = useState(false);
+	const closeEloInfo = useCallback(() => setEloInfoOpen(false), []);
 
 	const fetchMatches = () => {
 		setLoadError(null);
@@ -265,7 +262,16 @@ export const LeaderboardDrillDown = () => {
 
 			{rankings.length > 0 && (
 				<section className="standings-section">
-					<h2 className="section-label">Standings</h2>
+					<div className="section-header">
+						<h2 className="section-label">Standings</h2>
+						<button
+							type="button"
+							className="info-link"
+							onClick={() => setEloInfoOpen(true)}
+						>
+							How Elo works <span aria-hidden="true">ⓘ</span>
+						</button>
+					</div>
 					<div className="standings-list">
 						{rankings.map((r, i) => (
 							<div
@@ -398,6 +404,8 @@ export const LeaderboardDrillDown = () => {
 			>
 				+
 			</button>
+
+			{eloInfoOpen && <EloInfoModal onClose={closeEloInfo} />}
 
 			{modalOpen && (
 				<div className="modal-backdrop" onClick={handleCloseModal}>

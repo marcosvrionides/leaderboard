@@ -18,6 +18,13 @@ export const K_FACTOR = 32;
 export const expectedScore = (rating, opponentRating) =>
 	1 / (1 + Math.pow(10, (opponentRating - rating) / 400));
 
+// A rating change as "+16", "−16" (true minus sign) or "±0".
+export const formatEloChange = (change) => {
+	const rounded = Math.round(change);
+	if (rounded === 0) return "±0";
+	return rounded > 0 ? `+${rounded}` : `−${Math.abs(rounded)}`;
+};
+
 const byPlayOrder = (a, b) =>
 	a.timestamp - b.timestamp || (a.id ?? 0) - (b.id ?? 0);
 

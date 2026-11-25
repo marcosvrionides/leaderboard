@@ -1,6 +1,28 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { computeEloRatings, STARTING_RATING } from "../elo";
 import "./LeaderboardDrillDown.css";
+
+// Shows a match's rating change as "+16", "−16" (true minus sign) or "±0".
+const EloChange = ({ change }) => {
+	if (change === undefined) return null;
+	const rounded = Math.round(change);
+	const direction = rounded > 0 ? "up" : rounded < 0 ? "down" : "";
+	const text =
+		rounded === 0
+			? "±0"
+			: rounded > 0
+				? `+${rounded}`
+				: `−${Math.abs(rounded)}`;
+	return (
+		<span
+			className={`elo-change ${direction}`}
+			title="Elo rating change from this match"
+		>
+			{text}
+		</span>
+	);
+};
 
 const emptyParticipant = () => ({ name: "", gamesWon: "" });
 const emptyForm = () => ({
@@ -160,9 +182,25 @@ export const LeaderboardDrillDown = () => {
 		});
 	}
 
+	const { ratings: eloRatings, changesByMatchId: eloChangesByMatchId } =
+		computeEloRatings(leaderboardData);
+
+	// Ranked by Elo, which weighs who you beat rather than how often you
+	// play. Match wins break ties (e.g. two players who've only drawn).
 	const rankings = Object.entries(playerStats)
-		.map(([player, stats]) => ({ player, ...stats }))
-		.sort((a, b) => b.matchWins - a.matchWins);
+		.map(([player, stats]) => ({
+			player,
+			...stats,
+			elo: eloRatings.get(player) ?? STARTING_RATING,
+		}))
+		.sort(
+			(a, b) =>
+				Math.round(b.elo) - Math.round(a.elo) ||
+				b.matchWins - a.matchWins,
+		);
+
+	const maxMatchWins = Math.max(0, ...rankings.map((r) => r.matchWins));
+	const maxGameWins = Math.max(0, ...rankings.map((r) => r.gameWins));
 
 	const sortedMatches = leaderboardData
 		? [...leaderboardData].sort((a, b) => b.timestamp - a.timestamp)
@@ -241,6 +279,15 @@ export const LeaderboardDrillDown = () => {
 								<span className="standing-name">
 									{r.player}
 								</span>
+								<div
+									className="standing-elo"
+									title={`Elo rating (everyone starts at ${STARTING_RATING})`}
+								>
+									<span className="elo-value">
+										{Math.round(r.elo)}
+									</span>
+									<span className="elo-label">Elo</span>
+								</div>
 								<div className="standing-stats">
 									<span className="stat">
 										<strong>{r.matchWins}</strong> matches
@@ -256,7 +303,7 @@ export const LeaderboardDrillDown = () => {
 											<div
 												className="win-bar-fill"
 												style={{
-													width: `${rankings[0].matchWins > 0 ? (r.matchWins / rankings[0].matchWins) * 100 : 0}%`,
+													width: `${maxMatchWins > 0 ? (r.matchWins / maxMatchWins) * 100 : 0}%`,
 												}}
 											/>
 										</div>
@@ -267,7 +314,7 @@ export const LeaderboardDrillDown = () => {
 											<div
 												className="win-bar-fill games"
 												style={{
-													width: `${rankings[0].gameWins > 0 ? (r.gameWins / rankings[0].gameWins) * 100 : 0}%`,
+													width: `${maxGameWins > 0 ? (r.gameWins / maxGameWins) * 100 : 0}%`,
 												}}
 											/>
 										</div>
@@ -290,6 +337,9 @@ export const LeaderboardDrillDown = () => {
 							const sortedParticipants = [
 								...match.participants,
 							].sort((a, b) => b.gamesWon - a.gamesWon);
+							const eloChanges = eloChangesByMatchId.get(
+								match.id,
+							);
 
 							return (
 								<div
@@ -309,8 +359,15 @@ export const LeaderboardDrillDown = () => {
 												<span className="participant-name">
 													{p.playerName}
 												</span>
-												<span className="participant-score">
-													{p.gamesWon}
+												<span className="participant-result">
+													<EloChange
+														change={eloChanges?.get(
+															p.playerName,
+														)}
+													/>
+													<span className="participant-score">
+														{p.gamesWon}
+													</span>
 												</span>
 											</div>
 										))}

@@ -33,6 +33,7 @@
   --error-bg:      #2a1414;
   --error-border:  #4d1f1f;
   --error-text:    #e8a3a3;
+  --gain-text:     #8fd19e;
   --shadow:        rgba(0,0,0,0.5);
   --modal-bg:      rgba(0,0,0,0.7);
   --scrollbar:     #2a2a2a;
@@ -70,6 +71,7 @@
   --error-bg:      #fef0f0;
   --error-border:  #f5c5c5;
   --error-text:    #b02020;
+  --gain-text:     #1f7a3a;
   --shadow:        rgba(0,0,0,0.12);
   --modal-bg:      rgba(0,0,0,0.4);
   --scrollbar:     #cfc8b8;

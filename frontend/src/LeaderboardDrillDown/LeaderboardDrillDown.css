@@ -215,6 +215,81 @@ a.standing-row:focus-visible {
 	font-weight: 600;
 }
 
+/* ── Player cell: name, movement, streak, form ──── */
+.standing-player {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	min-width: 0;
+}
+.standing-name-line {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+}
+.standing-name-line .standing-name {
+	flex: 0 1 auto;
+}
+.movement,
+.streak {
+	flex-shrink: 0;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+.movement span[aria-hidden] {
+	font-size: 8px;
+	margin-right: 2px;
+	vertical-align: 1px;
+}
+.movement.up {
+	color: var(--gain-text);
+}
+.movement.down {
+	color: var(--error-text);
+}
+.movement.new {
+	color: var(--accent-ink);
+	border: 1px solid var(--accent-a34);
+	border-radius: 4px;
+	padding: 0 4px;
+	font-size: 9px;
+	letter-spacing: 0.08em;
+}
+.streak {
+	color: var(--text-muted-1);
+}
+.mini-form {
+	display: flex;
+	gap: 3px;
+}
+.mini-chip {
+	width: 15px;
+	height: 15px;
+	border-radius: 3px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 9px;
+	font-weight: 700;
+	line-height: 1;
+}
+.mini-chip.result-W {
+	background: var(--result-win);
+	color: var(--bg-card);
+}
+.mini-chip.result-L {
+	background: var(--result-loss);
+	color: var(--bg-card);
+}
+.mini-chip.result-D {
+	background: var(--result-draw);
+	color: var(--text-primary);
+}
+
 /* ── Elo ──────────────────────────────────────────── */
 .standing-elo {
 	display: flex;

@@ -216,3 +216,52 @@ export const computePlayerProfile = (matches, player, elo) => {
 		matches: [...played].reverse(),
 	};
 };
+
+const WEEK = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Per-player extras for the standings: last-5 form, current streak, and
+ * how many places they've moved since a week ago (compared with the
+ * standings from only the matches played before then).
+ * Returns Map(player -> { form, streak, movement }) where movement is:
+ *   null            nothing to compare (the board is less than a week old)
+ *   { isNew: true } no matches before a week ago
+ *   { change: n }   places gained (negative = dropped)
+ */
+export const computeTrends = (matches, rankings, now = Date.now()) => {
+	const ordered = [...(matches || [])].sort(
+		(a, b) => a.timestamp - b.timestamp || (a.id ?? 0) - (b.id ?? 0),
+	);
+	const cutoff = now - WEEK;
+	const before = ordered.filter((m) => m.timestamp < cutoff);
+	const previous =
+		before.length > 0 ? computeStandings(before).rankings : null;
+	const previousRank = new Map(
+		(previous || []).map((r, i) => [r.player, i + 1]),
+	);
+
+	const results = new Map();
+	ordered.forEach((m) =>
+		m.participants.forEach((p) => {
+			if (!results.has(p.playerName)) results.set(p.playerName, []);
+			results.get(p.playerName).push(playerResult(m, p.playerName));
+		}),
+	);
+
+	const trends = new Map();
+	rankings.forEach((r, i) => {
+		const rs = results.get(r.player) || [];
+		let movement = null;
+		if (previous) {
+			movement = previousRank.has(r.player)
+				? { change: previousRank.get(r.player) - (i + 1) }
+				: { isNew: true };
+		}
+		trends.set(r.player, {
+			form: rs.slice(-5),
+			streak: currentStreak(rs),
+			movement,
+		});
+	});
+	return trends;
+};

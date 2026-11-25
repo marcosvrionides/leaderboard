@@ -1,13 +1,13 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { STARTING_RATING } from "../elo";
-import { computeStandings, newestFirst, plural } from "../stats";
+import { computeStandings, computeTrends, newestFirst, plural } from "../stats";
 import { playerPath } from "../paths";
 import useBoardMatches from "../useBoardMatches";
 import EloInfoModal from "./EloInfoModal";
 import AddMatchModal from "./AddMatchModal";
 import DeleteMatchModal from "./DeleteMatchModal";
 import MatchCard from "./MatchCard";
+import Standings from "./Standings";
 import ManageBoardModal from "./ManageBoardModal";
 import RenamePlayerModal from "./RenamePlayerModal";
 import "./LeaderboardDrillDown.css";
@@ -30,9 +30,14 @@ export const LeaderboardDrillDown = () => {
 	const [manageDialog, setManageDialog] = useState(null);
 	const closeManage = useCallback(() => setManageDialog(null), []);
 
-	const { rankings, elo } = computeStandings(matches);
-	const maxMatchWins = Math.max(0, ...rankings.map((r) => r.matchWins));
-	const maxGameWins = Math.max(0, ...rankings.map((r) => r.gameWins));
+	const { rankings, elo } = useMemo(
+		() => computeStandings(matches),
+		[matches],
+	);
+	const trends = useMemo(
+		() => computeTrends(matches, rankings),
+		[matches, rankings],
+	);
 	const sortedMatches = newestFirst(matches);
 	const knownPlayerNames = rankings
 		.map((r) => r.player)
@@ -94,69 +99,11 @@ export const LeaderboardDrillDown = () => {
 							How Elo works <span aria-hidden="true">ⓘ</span>
 						</button>
 					</div>
-					<div className="standings-list">
-						{rankings.map((r, i) => (
-							<Link
-								className="standing-row"
-								key={r.player}
-								to={playerPath(name, r.player)}
-								title={`See ${r.player}'s profile`}
-								style={{ animationDelay: `${i * 0.07}s` }}
-							>
-								<span className={`rank-badge rank-${i + 1}`}>
-									{i + 1}
-								</span>
-								<span className="standing-name">
-									{r.player}
-								</span>
-								<div
-									className="standing-elo"
-									title={`Elo rating (everyone starts at ${STARTING_RATING})`}
-								>
-									<span className="elo-value">
-										{Math.round(r.elo)}
-									</span>
-									<span className="elo-label">Elo</span>
-								</div>
-								<div className="standing-stats">
-									<span className="stat">
-										<strong>{r.matchWins}</strong>{" "}
-										{r.matchWins === 1
-											? "match"
-											: "matches"}
-									</span>
-									<span className="stat">
-										<strong>{r.gameWins}</strong>{" "}
-										{r.gameWins === 1 ? "game" : "games"}
-									</span>
-								</div>
-								<div className="win-bars">
-									<div className="win-bar-row">
-										<span className="win-bar-label">M</span>
-										<div className="win-bar-track">
-											<div
-												className="win-bar-fill"
-												style={{
-													width: `${maxMatchWins > 0 ? (r.matchWins / maxMatchWins) * 100 : 0}%`,
-												}}
-											/>
-										</div>
-									</div>
-									<div className="win-bar-row">
-										<span className="win-bar-label">G</span>
-										<div className="win-bar-track">
-											<div
-												className="win-bar-fill games"
-												style={{
-													width: `${maxGameWins > 0 ? (r.gameWins / maxGameWins) * 100 : 0}%`,
-												}}
-											/>
-										</div>
-									</div>
-								</div>
-							</Link>
-						))}
-					</div>
+					<Standings
+						board={name}
+						rankings={rankings}
+						trends={trends}
+					/>
 				</section>
 			)}
 

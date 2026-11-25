@@ -1,6 +1,7 @@
 import {
 	computePlayerProfile,
 	computeStandings,
+	computeTrends,
 	headToHead,
 	playerResult,
 	getMatchWinnerNames,
@@ -137,4 +138,38 @@ test("playerResult", () => {
 	expect(playerResult(m, "A")).toBe("D");
 	expect(playerResult(m, "C")).toBe("L");
 	expect(playerResult(match(1, 1, { A: 3, B: 1 }), "A")).toBe("W");
+});
+
+describe("standings trends", () => {
+	const DAY = 24 * 60 * 60 * 1000;
+	const now = 100 * DAY;
+	const matches = [
+		match(1, now - 20 * DAY, { Alice: 3, Bob: 0 }),
+		match(2, now - 19 * DAY, { Alice: 3, Bob: 1 }),
+		match(3, now - 2 * DAY, { Bob: 3, Alice: 0 }),
+		match(4, now - 1 * DAY, { Bob: 3, Alice: 1 }),
+		match(5, now - 1 * DAY, { Bob: 3, Cat: 1 }),
+		match(6, now, { Bob: 3, Cat: 2 }),
+	];
+	const { rankings } = computeStandings(matches);
+	const trends = computeTrends(matches, rankings, now);
+
+	test("movement compares with the standings a week ago", () => {
+		expect(rankings.map((r) => r.player)).toEqual(["Bob", "Alice", "Cat"]);
+		expect(trends.get("Bob").movement).toEqual({ change: 1 });
+		expect(trends.get("Alice").movement).toEqual({ change: -1 });
+		expect(trends.get("Cat").movement).toEqual({ isNew: true });
+	});
+
+	test("form and streak", () => {
+		expect(trends.get("Bob").form).toEqual(["L", "W", "W", "W", "W"]);
+		expect(trends.get("Bob").streak).toEqual({ result: "W", count: 4 });
+		expect(trends.get("Alice").streak).toEqual({ result: "L", count: 2 });
+	});
+
+	test("no movement when the board is less than a week old", () => {
+		const recent = [match(1, now - DAY, { A: 3, B: 1 })];
+		const t = computeTrends(recent, computeStandings(recent).rankings, now);
+		expect(t.get("A").movement).toBeNull();
+	});
 });

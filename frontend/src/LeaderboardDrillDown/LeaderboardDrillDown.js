@@ -8,6 +8,7 @@ import AddMatchModal from "./AddMatchModal";
 import DeleteMatchModal from "./DeleteMatchModal";
 import MatchCard from "./MatchCard";
 import Standings from "./Standings";
+import Predictor from "./Predictor";
 import ManageBoardModal from "./ManageBoardModal";
 import RenamePlayerModal from "./RenamePlayerModal";
 import "./LeaderboardDrillDown.css";
@@ -104,6 +105,18 @@ export const LeaderboardDrillDown = () => {
 						rankings={rankings}
 						trends={trends}
 					/>
+				</section>
+			)}
+
+			{rankings.length >= 2 && (
+				<section className="predictor-section">
+					<div className="section-header">
+						<h2 className="section-label">Who'd win?</h2>
+						<span className="section-hint">
+							Based on current Elo
+						</span>
+					</div>
+					<Predictor rankings={rankings} matches={matches} />
 				</section>
 			)}
 

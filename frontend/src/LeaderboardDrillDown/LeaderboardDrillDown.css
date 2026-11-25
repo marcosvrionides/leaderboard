@@ -79,6 +79,7 @@
 
 /* ── Sections ─────────────────────────────────────── */
 .standings-section,
+.predictor-section,
 .matches-section {
 	max-width: 760px;
 	margin: 36px auto 0;
@@ -354,6 +355,117 @@ a.standing-row:focus-visible {
 }
 .win-bar-fill.games {
 	background: var(--blue-bar);
+}
+
+/* ── Who'd win? ───────────────────────────────────── */
+.section-hint {
+	font-size: 12px;
+	color: var(--text-muted-2);
+}
+.predictor {
+	background: var(--bg-card);
+	border: 1px solid var(--border-subtle);
+	border-radius: 10px;
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+.predictor-pick {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+	gap: 10px;
+	align-items: center;
+}
+.predictor-pick select {
+	background: var(--bg-input);
+	border: 1px solid var(--border-medium);
+	border-radius: 8px;
+	color: var(--text-primary);
+	font-family: "DM Sans", sans-serif;
+	font-size: 15px;
+	font-weight: 500;
+	padding: 10px 12px;
+	width: 100%;
+	min-width: 0;
+	outline: none;
+}
+.predictor-pick select:focus {
+	border-color: var(--accent-a34);
+}
+.predictor-swap {
+	background: transparent;
+	border: 1px solid var(--border-medium);
+	border-radius: 50%;
+	width: 36px;
+	height: 36px;
+	color: var(--text-muted-1);
+	font-size: 16px;
+	cursor: pointer;
+	transition:
+		color 0.2s,
+		border-color 0.2s;
+}
+.predictor-swap:hover {
+	color: var(--accent-ink);
+	border-color: var(--accent-a34);
+}
+.predictor-odds {
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	align-items: center;
+	gap: 14px;
+}
+.predictor-side {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 56px;
+}
+.predictor-side.right {
+	align-items: flex-end;
+}
+.predictor-pct {
+	font-family: "Bebas Neue", sans-serif;
+	font-size: 32px;
+	line-height: 1;
+	letter-spacing: 0.03em;
+	color: var(--text-primary);
+	font-variant-numeric: tabular-nums;
+}
+.predictor-meta {
+	font-size: 11px;
+	color: var(--text-muted-2);
+	letter-spacing: 0.04em;
+}
+.predictor-bar {
+	display: flex;
+	gap: 2px;
+	height: 10px;
+	border-radius: 5px;
+	overflow: hidden;
+}
+.predictor-bar-a,
+.predictor-bar-b {
+	flex-basis: 0;
+	min-width: 4px;
+	transition: flex-grow 0.4s ease;
+}
+.predictor-bar-a {
+	background: var(--accent);
+}
+.predictor-bar-b {
+	background: var(--blue-bar);
+}
+.predictor-text {
+	margin: 0;
+	font-size: 14px;
+	line-height: 1.5;
+	color: var(--text-primary);
+}
+.predictor-text.muted {
+	font-size: 12px;
+	color: var(--text-muted-1);
 }
 
 /* ── Match cards ──────────────────────────────────── */

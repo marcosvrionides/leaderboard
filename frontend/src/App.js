@@ -5,6 +5,7 @@ import Leaderboards from "./Leaderboards/Leaderboards";
 import { LeaderboardDrillDown } from "./LeaderboardDrillDown/LeaderboardDrillDown";
 import CreateLeaderboard from "./CreateLeaderboard/CreateLeaderboard";
 import PlayerProfile from "./PlayerProfile/PlayerProfile";
+import TvMode from "./TvMode/TvMode";
 import useTheme from "./useTheme";
 
 const App = () => {
@@ -88,6 +89,7 @@ const App = () => {
 				path="/leaderboard/:name/player/:player"
 				element={<PlayerProfile />}
 			/>
+			<Route path="/leaderboard/:name/tv" element={<TvMode />} />
 			<Route path="/create-leaderboard" element={<CreateLeaderboard />} />
 		</Routes>
 	);

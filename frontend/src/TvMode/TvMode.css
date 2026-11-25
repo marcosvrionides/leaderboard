@@ -1,0 +1,295 @@
+/* Sized from the viewport so it reads across a room on any screen size. */
+.tv {
+	height: 100vh;
+	overflow: hidden;
+	box-sizing: border-box;
+	padding: 3vh 3.5vw;
+	background: var(--bg-primary);
+	color: var(--text-primary);
+	font-family: "DM Sans", sans-serif;
+	display: flex;
+	flex-direction: column;
+	gap: 3vh;
+}
+.tv.idle {
+	cursor: none;
+}
+
+.tv-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 2vw;
+}
+.tv-title {
+	font-family: "Bebas Neue", sans-serif;
+	font-weight: 400;
+	font-size: min(5vw, 9vh);
+	letter-spacing: 0.05em;
+	line-height: 0.95;
+	margin: 0;
+	word-break: break-word;
+}
+.tv-subtitle {
+	display: flex;
+	gap: 1.5vw;
+	margin-top: 0.8vh;
+	font-size: max(12px, min(1.2vw, 2.2vh));
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--text-muted-1);
+}
+.tv-live-dot {
+	display: inline-block;
+	width: 0.6em;
+	height: 0.6em;
+	border-radius: 50%;
+	background: var(--gain-text);
+	margin-right: 0.3em;
+	vertical-align: 0.05em;
+	animation: tv-pulse 2s ease-in-out infinite;
+}
+@keyframes tv-pulse {
+	50% {
+		opacity: 0.3;
+	}
+}
+.tv-controls {
+	display: flex;
+	gap: 10px;
+	transition: opacity 0.4s;
+}
+.tv.idle .tv-controls {
+	opacity: 0;
+	pointer-events: none;
+}
+.tv-controls button,
+.tv-controls a {
+	background: transparent;
+	border: 1px solid var(--border-medium);
+	border-radius: 999px;
+	padding: 8px 16px;
+	color: var(--text-muted-1);
+	font-family: inherit;
+	font-size: 14px;
+	text-decoration: none;
+	cursor: pointer;
+	white-space: nowrap;
+}
+.tv-controls button:hover,
+.tv-controls a:hover {
+	color: var(--accent-ink);
+	border-color: var(--accent-a34);
+}
+
+.tv-message {
+	font-size: clamp(18px, 2.5vw, 48px);
+	color: var(--text-muted-1);
+	margin: 10vh 0 0;
+	text-align: center;
+}
+
+.tv-body {
+	flex: 1;
+	display: grid;
+	grid-template-columns: 3fr 2fr;
+	gap: 3vw;
+	min-height: 0;
+}
+.tv-standings,
+.tv-results {
+	min-height: 0;
+	overflow: hidden;
+}
+/* Results that don't fit fade out rather than being cut off sharply. */
+.tv-results {
+	-webkit-mask-image: linear-gradient(to bottom, #000 85%, transparent);
+	mask-image: linear-gradient(to bottom, #000 85%, transparent);
+}
+
+/* ── Standings ───────────────────────────────────── */
+.tv-standings {
+	--row: 1vh; /* set from TvMode.js so the rows fill the column */
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--row) * 1.1);
+}
+.tv-row {
+	display: grid;
+	grid-template-columns: calc(var(--row) * 6) 1fr auto calc(var(--row) * 14);
+	align-items: center;
+	gap: 1.5vw;
+	background: var(--bg-card);
+	border: 1px solid var(--border-subtle);
+	border-radius: 14px;
+	padding: calc(var(--row) * 1.1) 1.6vw;
+	flex-shrink: 0;
+}
+.tv-row.tv-place-1 {
+	border-color: var(--accent-a34);
+	background: linear-gradient(90deg, var(--accent-a10), var(--bg-card) 60%);
+}
+.tv-rank {
+	width: calc(var(--row) * 5.5);
+	height: calc(var(--row) * 5.5);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 600;
+	font-size: calc(var(--row) * 2.6);
+	background: var(--border-subtle);
+	color: var(--text-muted-1);
+}
+.tv-place-1 .tv-rank {
+	background: var(--rank-1-bg);
+	color: var(--rank-1-color);
+}
+.tv-place-2 .tv-rank {
+	background: var(--rank-2-bg);
+	color: var(--rank-2-color);
+}
+.tv-place-3 .tv-rank {
+	background: var(--rank-3-bg);
+	color: var(--rank-3-color);
+}
+.tv-player {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--row) * 0.6);
+	min-width: 0;
+}
+.tv-name {
+	font-size: calc(var(--row) * 3.4);
+	line-height: 1.2;
+	font-weight: 500;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.tv-streak {
+	font-size: 0.7em;
+	color: var(--text-muted-1);
+}
+.tv-form {
+	display: flex;
+	gap: 0.3vw;
+}
+.tv-chip {
+	width: calc(var(--row) * 2.6);
+	height: calc(var(--row) * 2.6);
+	border-radius: 4px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: calc(var(--row) * 1.5);
+	font-weight: 700;
+}
+.tv-chip.result-W {
+	background: var(--result-win);
+	color: var(--bg-card);
+}
+.tv-chip.result-L {
+	background: var(--result-loss);
+	color: var(--bg-card);
+}
+.tv-chip.result-D {
+	background: var(--result-draw);
+	color: var(--text-primary);
+}
+.tv-move {
+	font-size: calc(var(--row) * 2.2);
+	font-weight: 600;
+	color: var(--text-muted-1);
+	min-width: 3vw;
+	text-align: right;
+}
+.tv-elo {
+	font-family: "Bebas Neue", sans-serif;
+	font-size: calc(var(--row) * 6);
+	line-height: 1;
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+.tv-more {
+	margin: 0;
+	font-size: max(12px, calc(var(--row) * 1.8));
+	color: var(--text-muted-2);
+}
+
+/* ── Latest results ──────────────────────────────── */
+.tv-results {
+	display: flex;
+	flex-direction: column;
+	gap: 1.1vh;
+	min-width: 0;
+}
+.tv-results h2 {
+	margin: 0 0 0.5vh;
+	font-size: max(12px, 1.8vh);
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: var(--text-muted-2);
+	font-weight: 500;
+}
+.tv-result {
+	flex-shrink: 0;
+	background: var(--bg-card);
+	border: 1px solid var(--border-subtle);
+	border-radius: 14px;
+	padding: 1vh 1.4vw;
+	display: flex;
+	flex-direction: column;
+	gap: 0.4vh;
+}
+.tv-result-time {
+	font-size: 1.5vh;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--text-muted-2);
+}
+.tv-result-line {
+	display: grid;
+	grid-template-columns: 1fr auto 3vw;
+	gap: 1vw;
+	align-items: center;
+	font-size: 2.3vh;
+	color: var(--text-muted-1);
+}
+.tv-result-line.winner {
+	color: var(--text-primary);
+	font-weight: 500;
+}
+.tv-result-name {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.tv-result-change {
+	font-size: 0.8em;
+	font-variant-numeric: tabular-nums;
+}
+.tv-result-score {
+	font-family: "Bebas Neue", sans-serif;
+	font-size: 1.3em;
+	text-align: right;
+}
+.tv-result-line.winner .tv-result-score {
+	color: var(--accent-ink);
+}
+
+/* Portrait screens / phones: stack the two columns. */
+@media (max-aspect-ratio: 1/1) {
+	.tv-body {
+		grid-template-columns: 1fr;
+	}
+	.tv {
+		height: auto;
+		min-height: 100vh;
+		overflow: visible;
+	}
+	.tv-results {
+		-webkit-mask-image: none;
+		mask-image: none;
+	}
+}

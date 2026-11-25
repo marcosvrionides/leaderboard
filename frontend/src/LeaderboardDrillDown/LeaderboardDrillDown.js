@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { computeStandings, computeTrends, newestFirst, plural } from "../stats";
-import { playerPath } from "../paths";
+import { boardPath, playerPath } from "../paths";
 import {
 	filterBySeason,
 	pastChampions,
@@ -325,6 +325,13 @@ export const LeaderboardDrillDown = () => {
 				<ManageBoardModal
 					onClose={closeManage}
 					actions={[
+						{
+							id: "tv",
+							title: "TV display",
+							description:
+								"Full-screen standings and latest results for a big screen. Refreshes automatically.",
+							onSelect: () => navigate(`${boardPath(name)}/tv`),
+						},
 						{
 							id: "rename",
 							title: "Rename or merge a player",

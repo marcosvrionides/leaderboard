@@ -28,11 +28,6 @@ public class MatchController {
         this.playerService = playerService;
     }
 
-    @GetMapping
-    public List<Match> getAll() {
-        return matchRepository.findAll();
-    }
-
     @GetMapping("/leaderboard/{leaderboardName}")
     public List<Match> getByLeaderboard(@PathVariable String leaderboardName) {
         return matchRepository.findByLeaderboardName(leaderboardName);

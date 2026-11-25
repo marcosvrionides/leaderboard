@@ -6,8 +6,8 @@ This frontend is a React app for a leaderboard service. It connects to the backe
 
 - Lists all available leaderboards, each with its current leader, number of matches and when it was last played.
 - Lets users search leaderboards by name.
-- Lets users favourite leaderboards for quick access.
-- Lets users create a new leaderboard with a secure password.
+- Lets users favourite leaderboards for quick access (from the home page or the ☆ on a board).
+- Lets users create a new leaderboard with a secure password, optionally **unlisted**: hidden from the home page and search, but viewable by anyone with the link. Visibility can be changed later from **Manage**.
 - Lets users open a leaderboard to view standings and match history.
 - Ranks players by Elo rating (everyone starts at 1000), recalculated from the full match history, and shows each player's rating change on every match. Matches with 3+ players are scored as head-to-head results between every pair.
 - Lets users add a new match result to a leaderboard by entering player names, game scores, an optional note, and the leaderboard password.

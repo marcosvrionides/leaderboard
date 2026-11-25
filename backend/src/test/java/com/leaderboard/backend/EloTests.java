@@ -87,11 +87,11 @@ class EloTests {
         BoardSummary summary = BoardSummary.of(pool, List.of(
                 match(1, 100, "A", 3, "B", 1),
                 match(2, 250, "A", 3, "C", 0)));
-        assertEquals(new BoardSummary("Pool", 1, 2, 3, 250L, "A", 1031L), summary);
+        assertEquals(new BoardSummary("Pool", 1, 2, 3, 250L, "A", 1031L, false), summary);
 
         Leaderboard empty = new Leaderboard();
         empty.setName("Empty");
-        assertEquals(new BoardSummary("Empty", 1, 0, 0, null, null, null), BoardSummary.of(empty, List.of()));
+        assertEquals(new BoardSummary("Empty", 1, 0, 0, null, null, null, false), BoardSummary.of(empty, List.of()));
     }
 
     @Test
@@ -104,11 +104,11 @@ class EloTests {
         current.setSeason(2);
 
         BoardSummary summary = BoardSummary.of(pool, List.of(old, current));
-        assertEquals(new BoardSummary("Pool", 2, 1, 2, 200L, "C", 1016L), summary);
+        assertEquals(new BoardSummary("Pool", 2, 1, 2, 200L, "C", 1016L, false), summary);
 
         Match newSeasonOnly = match(3, 300, "A", 1, "B", 1);
         pool.setCurrentSeason(3);
-        assertEquals(new BoardSummary("Pool", 3, 0, 0, 300L, null, null),
+        assertEquals(new BoardSummary("Pool", 3, 0, 0, 300L, null, null, false),
                 BoardSummary.of(pool, List.of(old, current, newSeasonOnly)));
     }
 }

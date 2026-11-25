@@ -30,6 +30,10 @@ public class Leaderboard {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long currentSeasonStartedAt;
 
+    // Unlisted boards are left out of the public list; anyone with the link
+    // can still view them. Nullable for existing rows (null = listed).
+    private Boolean unlisted;
+
     public String getName() {
         return name;
     }
@@ -52,6 +56,14 @@ public class Leaderboard {
 
     public void setCurrentSeason(Integer currentSeason) {
         this.currentSeason = currentSeason;
+    }
+
+    public boolean isUnlisted() {
+        return Boolean.TRUE.equals(unlisted);
+    }
+
+    public void setUnlisted(Boolean unlisted) {
+        this.unlisted = unlisted;
     }
 
     public Long getCurrentSeasonStartedAt() {

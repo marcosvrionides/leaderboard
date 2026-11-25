@@ -72,6 +72,10 @@
 .leaderboard-meta > span {
 	white-space: nowrap;
 }
+.leaderboard-meta-unlisted {
+	color: var(--accent-ink);
+	font-weight: 600;
+}
 .leaderboard-meta-leader {
 	color: var(--text-primary);
 	font-weight: 500;

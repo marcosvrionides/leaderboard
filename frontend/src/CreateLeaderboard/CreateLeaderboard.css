@@ -126,3 +126,33 @@
 .submit-button:active {
 	transform: scale(0.98);
 }
+
+.create-checkbox {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	cursor: pointer;
+	font-family: "DM Sans", sans-serif;
+}
+.create-checkbox input {
+	width: 18px;
+	height: 18px;
+	margin: 2px 0 0;
+	accent-color: var(--accent);
+	flex-shrink: 0;
+}
+.create-checkbox > span {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+.create-checkbox strong {
+	font-size: 14px;
+	color: var(--text-primary);
+	font-weight: 600;
+}
+.create-checkbox > span > span {
+	font-size: 13px;
+	line-height: 1.5;
+	color: var(--text-muted-1);
+}

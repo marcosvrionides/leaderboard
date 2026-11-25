@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { boardPath } from "../paths";
 import "./CreateLeaderboard.css";
 
 const CreateLeaderboard = () => {
 	const navigate = useNavigate();
 	const [name, setName] = useState("");
 	const [password, setPassword] = useState("");
+	const [unlisted, setUnlisted] = useState(false);
 	const [error, setError] = useState(null);
 	const [submitting, setSubmitting] = useState(false);
 
@@ -25,7 +27,7 @@ const CreateLeaderboard = () => {
 		fetch(`${process.env.REACT_APP_API_URL}/api/leaderboards`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ name: name.trim(), password }),
+			body: JSON.stringify({ name: name.trim(), password, unlisted }),
 		})
 			.then(async (res) => {
 				if (res.status === 409)
@@ -38,7 +40,7 @@ const CreateLeaderboard = () => {
 					);
 				return res.json();
 			})
-			.then((data) => navigate("/leaderboard/" + data.name))
+			.then((data) => navigate(boardPath(data.name)))
 			.catch((err) => {
 				console.error(err);
 				setError(err.message);
@@ -85,6 +87,20 @@ const CreateLeaderboard = () => {
 					/>
 				</div>
 
+				<label className="create-checkbox">
+					<input
+						type="checkbox"
+						checked={unlisted}
+						onChange={(e) => setUnlisted(e.target.checked)}
+					/>
+					<span>
+						<strong>Unlisted</strong>
+						<span>
+							Keep it off the public list. Anyone with the link
+							can still view it. You can change this later.
+						</span>
+					</span>
+				</label>
 				{error && <div className="create-error">{error}</div>}
 
 				<button

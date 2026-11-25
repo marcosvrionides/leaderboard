@@ -15,18 +15,19 @@ public record BoardSummary(
         int playerCount,
         Long lastPlayed,
         String leader,
-        Long leaderRating) {
+        Long leaderRating,
+        boolean unlisted) {
 
     public static BoardSummary of(Leaderboard board, List<Match> allMatches) {
         int season = board.getCurrentSeason();
         List<Match> current = allMatches.stream().filter(m -> m.getSeason() == season).toList();
         Long lastPlayed = allMatches.stream().map(Match::getTimestamp).max(Long::compare).orElse(null);
         if (current.isEmpty()) {
-            return new BoardSummary(board.getName(), season, 0, 0, lastPlayed, null, null);
+            return new BoardSummary(board.getName(), season, 0, 0, lastPlayed, null, null, board.isUnlisted());
         }
         List<Elo.Standing> standings = Elo.standings(current);
         Elo.Standing top = standings.get(0);
         return new BoardSummary(board.getName(), season, current.size(), standings.size(), lastPlayed,
-                top.player(), top.roundedRating());
+                top.player(), top.roundedRating(), board.isUnlisted());
     }
 }

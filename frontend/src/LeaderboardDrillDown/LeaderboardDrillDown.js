@@ -10,6 +10,7 @@ import {
 } from "../seasons";
 import useBoard from "../useBoard";
 import useBoardMatches from "../useBoardMatches";
+import { useFavourites } from "../useFavourites";
 import EloInfoModal from "./EloInfoModal";
 import AddMatchModal from "./AddMatchModal";
 import DeleteMatchModal from "./DeleteMatchModal";
@@ -20,6 +21,7 @@ import ShareButton from "./ShareButton";
 import ManageBoardModal from "./ManageBoardModal";
 import RenamePlayerModal from "./RenamePlayerModal";
 import { PastChampions, SeasonPicker, StartSeasonModal } from "./Seasons";
+import VisibilityModal from "./VisibilityModal";
 import "./LeaderboardDrillDown.css";
 
 export const LeaderboardDrillDown = () => {
@@ -33,6 +35,8 @@ export const LeaderboardDrillDown = () => {
 	const { board, notFound, reload: reloadBoard } = useBoard(name);
 	const currentSeason = board.currentSeason;
 	const season = useSeasonSelection(currentSeason);
+	const { isFavourite, toggleFavourite } = useFavourites();
+	const starred = isFavourite(name);
 	const [addOpen, setAddOpen] = useState(false);
 	const [matchToDelete, setMatchToDelete] = useState(null);
 	const [eloInfoOpen, setEloInfoOpen] = useState(false);
@@ -112,6 +116,19 @@ export const LeaderboardDrillDown = () => {
 						← All leaderboards
 					</Link>
 					<div className="drill-actions">
+						<button
+							type="button"
+							className={`drill-manage drill-star${starred ? " starred" : ""}`}
+							onClick={() => toggleFavourite(name)}
+							aria-pressed={starred}
+							title={
+								starred
+									? "Remove from favourites"
+									: "Add to favourites (pins it on the home page)"
+							}
+						>
+							{starred ? "★" : "☆"}
+						</button>
 						<ShareButton
 							board={name}
 							text={
@@ -137,6 +154,14 @@ export const LeaderboardDrillDown = () => {
 							selected={season.selected}
 							onSelect={season.select}
 						/>
+					)}
+					{board.unlisted && (
+						<span
+							className="unlisted-badge"
+							title="Hidden from the home page. Anyone with the link can view it."
+						>
+							Unlisted
+						</span>
 					)}
 					<p className="drill-subtitle">
 						{matches
@@ -311,6 +336,16 @@ export const LeaderboardDrillDown = () => {
 							onSelect: () => setManageDialog("rename"),
 						},
 						{
+							id: "visibility",
+							title: board.unlisted
+								? "Visibility: Unlisted"
+								: "Visibility: Listed",
+							description: board.unlisted
+								? "Hidden from the home page; anyone with the link can view it."
+								: "Shown on the home page. Make it unlisted to hide it.",
+							onSelect: () => setManageDialog("visibility"),
+						},
+						{
 							id: "season",
 							title: `Start Season ${currentSeason + 1}`,
 							description:
@@ -332,6 +367,18 @@ export const LeaderboardDrillDown = () => {
 					onRenamed={() => {
 						setManageDialog(null);
 						fetchMatches();
+					}}
+				/>
+			)}
+
+			{manageDialog === "visibility" && (
+				<VisibilityModal
+					board={name}
+					unlisted={board.unlisted}
+					onClose={closeManage}
+					onSaved={() => {
+						setManageDialog(null);
+						reloadBoard();
 					}}
 				/>
 			)}

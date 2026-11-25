@@ -7,8 +7,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,14 +30,35 @@ public class LeaderboardController {
         this.boardAccess = boardAccess;
     }
 
-    /** Every board with its match count, last game and current leader (no passwords). */
+    /**
+     * Every listed board with its match count, last game and current leader
+     * (no passwords). Unlisted boards are left out unless named in
+     * {@code include} - knowing the exact name is the same as having the
+     * link, so this lets people see unlisted boards they've favourited.
+     */
     @GetMapping
-    public List<BoardSummary> getAll() {
+    public List<BoardSummary> getAll(@RequestParam(required = false) List<String> include) {
+        Set<String> wanted = include == null ? Set.of() : new HashSet<>(include);
         Map<String, List<Match>> matchesByBoard = matchRepository.findAllWithParticipants().stream()
                 .collect(Collectors.groupingBy(m -> m.getLeaderboard().getName()));
         return repository.findAll().stream()
+                .filter(board -> !board.isUnlisted() || wanted.contains(board.getName()))
                 .map(board -> BoardSummary.of(board, matchesByBoard.getOrDefault(board.getName(), List.of())))
                 .toList();
+    }
+
+    public record VisibilityRequest(boolean unlisted) {
+    }
+
+    /** Lists or unlists a board. */
+    @PutMapping("/{name}/visibility")
+    public BoardDetails setVisibility(
+            @PathVariable String name,
+            @RequestHeader("X-Leaderboard-Password") String password,
+            @RequestBody VisibilityRequest request) {
+        Leaderboard board = boardAccess.requireWithPassword(name, password);
+        board.setUnlisted(request.unlisted());
+        return BoardDetails.of(repository.save(board));
     }
 
     @GetMapping("/{name}")

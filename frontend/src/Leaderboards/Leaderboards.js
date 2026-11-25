@@ -8,12 +8,20 @@ const Leaderboards = ({ searchTerm = "" }) => {
 	const [leaderboards, setLeaderboards] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
-	const { toggleFavourite, isFavourite } = useFavourites();
+	const { favourites, toggleFavourite, isFavourite } = useFavourites();
+	// Unlisted boards aren't in the public list, so ask for favourited ones
+	// by name (as loaded when the page opened).
+	const [favouritesAtLoad] = useState(favourites);
 
 	useEffect(() => {
 		setLoading(true);
 		setError(null);
-		fetch(`${process.env.REACT_APP_API_URL}/api/leaderboards`)
+		const include = favouritesAtLoad
+			.map((n) => `include=${encodeURIComponent(n)}`)
+			.join("&");
+		fetch(
+			`${process.env.REACT_APP_API_URL}/api/leaderboards${include ? `?${include}` : ""}`,
+		)
 			.then((res) => {
 				if (!res.ok) throw new Error(`Request failed (${res.status})`);
 				return res.json();
@@ -24,10 +32,13 @@ const Leaderboards = ({ searchTerm = "" }) => {
 				setError("Couldn't load leaderboards. Please try again.");
 			})
 			.finally(() => setLoading(false));
-	}, []);
+	}, [favouritesAtLoad]);
 
-	const filtered = leaderboards.filter((lb) =>
-		lb.name.toLowerCase().includes(searchTerm.toLowerCase()),
+	// Unlisted boards only ever show up as favourites.
+	const filtered = leaderboards.filter(
+		(lb) =>
+			(!lb.unlisted || isFavourite(lb.name)) &&
+			lb.name.toLowerCase().includes(searchTerm.toLowerCase()),
 	);
 
 	const favouriteCards = leaderboards.filter((lb) => isFavourite(lb.name));

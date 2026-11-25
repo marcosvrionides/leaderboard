@@ -9,15 +9,27 @@ import "./LeaderboardCard.css";
 const BoardMeta = ({ data }) => {
 	if (data.matchCount === undefined) return null;
 	const season = data.season > 1 ? `Season ${data.season}` : null;
+	const unlisted = data.unlisted && (
+		<span
+			className="leaderboard-meta-unlisted"
+			title="Only people with the link can find this board"
+		>
+			Unlisted
+		</span>
+	);
 	if (!data.matchCount) {
 		return (
 			<span className="leaderboard-meta">
-				{season ? `${season} just started` : "No games yet"}
+				{unlisted}
+				<span>
+					{season ? `${season} just started` : "No games yet"}
+				</span>
 			</span>
 		);
 	}
 	return (
 		<span className="leaderboard-meta">
+			{unlisted}
 			{season && <span>{season}</span>}
 			{data.leader && (
 				<span

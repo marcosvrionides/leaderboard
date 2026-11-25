@@ -198,6 +198,46 @@
 	border-color: var(--accent-a34);
 }
 
+/* Radio choices shown as cards */
+.choice-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.choice {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 14px 16px;
+	background: var(--bg-input);
+	border: 1px solid var(--border-subtle);
+	border-radius: 10px;
+	cursor: pointer;
+	transition: border-color 0.2s;
+}
+.choice.selected {
+	border-color: var(--accent-a53);
+}
+.choice input {
+	margin: 3px 0 0;
+	accent-color: var(--accent);
+	flex-shrink: 0;
+}
+.choice > span {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+.choice strong {
+	font-size: 14px;
+	color: var(--text-primary);
+}
+.choice > span > span {
+	font-size: 13px;
+	line-height: 1.5;
+	color: var(--text-muted-1);
+}
+
 /* Menu of actions (e.g. Manage Board) */
 .manage-actions {
 	display: flex;
